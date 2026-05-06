@@ -35,6 +35,7 @@ class Game {
     private scaleFactor = 1;
     private totalDistance = 0;
     private lastZoneCheck = 0;
+    private particles: {x: number, y: number, speed: number, length: number}[] = [];
 
     constructor() {
         this.canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -452,10 +453,88 @@ class Game {
             this.drawLeaderboard();
         }
 
-        // Affichage météo
+        // Affichage météo et effets
         this.drawWeather();
+        this.drawWeatherEffects();
+        
+        // Overlay de nuit
+        if (this.weatherManager.getIsNight()) {
+            this.ctx.fillStyle = 'rgba(26, 26, 46, 0.4)';
+            this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+        }
 
         requestAnimationFrame(() => this.gameLoop());
+    }
+
+    private drawWeatherEffects(): void {
+        const weather = this.weatherManager.getWeatherData();
+        if (!weather) return;
+
+        const code = weather.weatherCode;
+        
+        // Initialiser les particules si nécessaire
+        if (this.particles.length === 0 && (code >= 61 || code === 45)) {
+            for (let i = 0; i < 100; i++) {
+                this.particles.push({
+                    x: Math.random() * this.canvasWidth,
+                    y: Math.random() * this.canvasHeight,
+                    speed: 5 + Math.random() * 10,
+                    length: 10 + Math.random() * 15
+                });
+            }
+        }
+
+        if (code >= 61 && code <= 65) { // Pluie
+            this.ctx.strokeStyle = 'rgba(174, 194, 224, 0.6)';
+            this.ctx.lineWidth = 1;
+            this.particles.forEach(p => {
+                this.ctx.beginPath();
+                this.ctx.moveTo(p.x, p.y);
+                this.ctx.lineTo(p.x, p.y + p.length);
+                this.ctx.stroke();
+                
+                p.y += p.speed;
+                if (p.y > this.canvasHeight) {
+                    p.y = -p.length;
+                    p.x = Math.random() * this.canvasWidth;
+                }
+            });
+        } else if (code >= 71 && code <= 75) { // Neige
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            this.particles.forEach(p => {
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                p.y += p.speed * 0.3;
+                p.x += Math.sin(p.y / 20) * 1;
+                if (p.y > this.canvasHeight) {
+                    p.y = -5;
+                    p.x = Math.random() * this.canvasWidth;
+                }
+            });
+        } else if (code >= 95) { // Orage
+            if (Math.random() > 0.98) {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+            }
+            // Ajouter de la pluie fine pour l'orage
+            this.ctx.strokeStyle = 'rgba(174, 194, 224, 0.4)';
+            this.particles.forEach(p => {
+                this.ctx.beginPath();
+                this.ctx.moveTo(p.x, p.y);
+                this.ctx.lineTo(p.x, p.y + p.length);
+                this.ctx.stroke();
+                p.y += p.speed * 1.5;
+                if (p.y > this.canvasHeight) p.y = -p.length;
+            });
+        } else if (code === 45 || code === 48) { // Brouillard
+            this.ctx.fillStyle = 'rgba(200, 200, 200, 0.2)';
+            this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+        } else {
+            // Nettoyer les particules si le temps est clair
+            if (this.particles.length > 0) this.particles = [];
+        }
     }
 
     private drawPauseScreen(): void {
