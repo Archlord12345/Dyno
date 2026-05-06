@@ -18,7 +18,7 @@
             align-items: center;
             min-height: 100vh;
             background: #FFFACD;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
         }
         
@@ -27,7 +27,7 @@
             width: 100vw;
             height: 100vh;
             text-align: center;
-            display: none; /* Caché par défaut */
+            display: none;
         }
         
         canvas {
@@ -38,7 +38,6 @@
             height: 100%;
             background: transparent;
             image-rendering: pixelated;
-            image-rendering: crisp-edges;
         }
         
         #score {
@@ -64,32 +63,37 @@
         }
         
         #game-over h2 {
-            color: #2F4F4F;
             margin-bottom: 25px;
             font-size: 42px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #ff4757;
         }
         
         #game-over p {
-            color: #666;
             font-size: 20px;
-            margin: 0;
+            margin: 10px 0;
+            color: #ced4da;
+        }
+
+        #game-over span {
+            font-weight: bold;
+            color: #fff;
         }
         
-        .controls {
+        .controls-hint {
             position: absolute;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             color: #2F4F4F;
-            font-size: 18px;
+            font-size: 16px;
             z-index: 10;
             background: rgba(255, 255, 255, 0.9);
-            padding: 15px 30px;
-            border-radius: 15px;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            padding: 12px 24px;
+            border-radius: 12px;
             border: 2px solid #2F4F4F;
             font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         
         .overlay {
@@ -98,75 +102,94 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 2000;
         }
         
         .selection-container {
             background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .selection-container h2 {
+            margin-bottom: 25px;
+            color: #2F4F4F;
         }
         
         .avatar-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            grid-gap: 10px;
-            margin-bottom: 20px;
+            grid-gap: 15px;
+            margin-bottom: 30px;
         }
         
         .start-btn {
-            background: #4CAF50;
+            background: #2ed573;
             color: #fff;
             border: none;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3);
         }
         
         .start-btn:hover {
-            background: #3e8e41;
+            background: #26af5f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 213, 115, 0.4);
         }
         
         .avatar-option {
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            padding: 15px;
             cursor: pointer;
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #f8f9fa;
         }
         
         .avatar-option:hover {
-            border-color: #4CAF50;
+            border-color: #2ed573;
+            background: #fff;
             transform: scale(1.05);
         }
         
         .avatar-option.selected {
-            border-color: #4CAF50;
-            background: #e8f5e8;
+            border-color: #2ed573;
+            background: #e7f9ee;
+            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.2);
         }
         
         .avatar-preview {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 5px;
-            background: #f0f0f0;
-            border-radius: 4px;
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 10px;
+            background: #fff;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 32px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         
         .avatar-name {
-            font-size: 12px;
-            font-weight: bold;
-            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2F4F4F;
         }
 
         .game-modifiers {
@@ -213,13 +236,13 @@
         <div class="selection-container">
             <h2>Choisissez votre avatar</h2>
             <div id="avatar-grid" class="avatar-grid"></div>
-            <button id="start-game" class="start-btn">Commencer le jeu</button>
+            <button id="btn-start" class="start-btn">Commencer le jeu</button>
         </div>
     </div>
 
     <div id="game-container">
         <canvas id="game"></canvas>
-        <div id="score">Score: 0</div>
+        <div id="score">0</div>
         <div class="game-modifiers">
             <button id="toggle-time" class="modifier-btn" title="Cycle Jour/Nuit">🌙</button>
             <button id="cycle-weather" class="modifier-btn" title="Changer Météo">☁️</button>
@@ -232,28 +255,27 @@
             <button id="restart-btn-gameover" class="start-btn">Rejouer</button>
         </div>
     </div>
-    <div class="controls">
+    <div class="controls-hint">
         ESPACE ou ↑ = SAUTER | ↓ = S'ACCROUPIR | P = PAUSE | M = MUTE
     </div>
     
     <script type="module">
         import { AvatarManager } from './dist/AvatarManager.js';
         
-        let selectedAvatar = 'player';
+        let selectedAvatarId = 'adventurer'; // Synchronisé avec AvatarManager.ts
         
-        // Initialiser la sélection d'avatar
         function initAvatarSelection() {
             const avatarManager = AvatarManager.getInstance();
             const avatars = avatarManager.getAvatars();
             const grid = document.getElementById('avatar-grid');
             
-            // Créer les options d'avatar
+            grid.innerHTML = ''; // Nettoyer pour éviter les doublons si rappel
+
             avatars.forEach(avatar => {
                 const option = document.createElement('div');
                 option.className = 'avatar-option';
                 option.dataset.avatarId = avatar.id;
                 
-                // Icône de prévisualisation selon la catégorie
                 const preview = document.createElement('div');
                 preview.className = 'avatar-preview';
                 preview.textContent = getAvatarIcon(avatar);
@@ -270,11 +292,9 @@
                 grid.appendChild(option);
             });
             
-            // Sélectionner l'avatar par défaut
-            selectAvatar(selectedAvatar);
+            selectAvatar(selectedAvatarId);
             
-            // Gérer le bouton de démarrage
-            document.getElementById('start-game').addEventListener('click', startGame);
+            document.getElementById('btn-start').addEventListener('click', startGame);
         }
         
         function getAvatarIcon(avatar) {
@@ -289,7 +309,6 @@
         }
         
         function selectAvatar(avatarId) {
-            // Mettre à jour la sélection visuelle
             document.querySelectorAll('.avatar-option').forEach(option => {
                 option.classList.remove('selected');
             });
@@ -299,23 +318,20 @@
                 selectedOption.classList.add('selected');
             }
             
-            selectedAvatar = avatarId;
+            selectedAvatarId = avatarId;
             const avatarManager = AvatarManager.getInstance();
             avatarManager.selectAvatar(avatarId);
         }
         
         function startGame() {
-            // Cacher l'écran de sélection et montrer le jeu
             document.getElementById('avatar-selection').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             
-            // Charger le jeu
             import('./dist/game.js').then(module => {
-                // Le jeu va démarrer automatiquement
+                // Game logic starts automatically
             });
         }
         
-        // Initialiser quand la page est chargée
         document.addEventListener('DOMContentLoaded', initAvatarSelection);
     </script>
 </body>
