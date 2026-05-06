@@ -477,7 +477,13 @@ class Game {
         this.ctx.fillText(weather.description, startX, startY + 20 * this.scaleFactor);
         this.ctx.font = `${11 * this.scaleFactor}px Arial`;
         this.ctx.fillStyle = '#999';
-        this.ctx.fillText('Paris, FR', startX, startY + 40 * this.scaleFactor);
+        this.ctx.fillText(this.weatherManager.getManualWeatherOverride() ? 'Mode Manuel' : 'Position Locale', startX, startY + 40 * this.scaleFactor);
+        // Mettre à jour l'icône du bouton si pas d'override manuel
+        const toggleTimeBtn = document.getElementById('toggle-time');
+        if (toggleTimeBtn && !this.weatherManager.getManualTimeOverride()) {
+            const isNight = this.weatherManager.getIsNight();
+            toggleTimeBtn.textContent = isNight ? '☀️' : '🌙';
+        }
         // Changer la couleur de fond selon la météo
         document.body.style.backgroundColor = this.weatherManager.getBackgroundColor();
     }

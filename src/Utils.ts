@@ -102,10 +102,11 @@ export class WeatherManager {
     private readonly UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes
     private isNight = false;
     private manualWeatherIndex = -1;
+    private manualTimeOverride = false;
     private readonly weatherCodes = [0, 3, 45, 61, 71, 95]; // Clear, Cloudy, Fog, Rain, Snow, Thunderstorm
 
     async fetchWeather(): Promise<void> {
-        if (this.manualWeatherIndex !== -1) return; // Don't fetch if manually overridden
+        if (this.manualWeatherIndex !== -1 && this.manualTimeOverride) return;
 
         const now = Date.now();
         if (now - this.lastUpdate < this.UPDATE_INTERVAL && this.weatherData) {
@@ -113,29 +114,56 @@ export class WeatherManager {
         }
 
         try {
-            const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&current_weather=true');
+            // Tenter d'obtenir la position de l'utilisateur
+            let lat = 48.8566;
+            let lon = 2.3522;
+
+            if ("geolocation" in navigator) {
+                try {
+                    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                    });
+                    lat = position.coords.latitude;
+                    lon = position.coords.longitude;
+                } catch (e) {
+                    console.log('Geolocation access denied or timeout - using default');
+                }
+            }
+
+            const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
             const data = await response.json();
             
-            this.weatherData = {
-                temperature: Math.round(data.current_weather.temperature),
-                weatherCode: data.current_weather.weathercode,
-                description: this.getWeatherDescription(data.current_weather.weathercode),
-                icon: this.getWeatherIcon(data.current_weather.weathercode)
-            };
+            if (this.manualWeatherIndex === -1) {
+                this.weatherData = {
+                    temperature: Math.round(data.current_weather.temperature),
+                    weatherCode: data.current_weather.weathercode,
+                    description: this.getWeatherDescription(data.current_weather.weathercode),
+                    icon: this.getWeatherIcon(data.current_weather.weathercode)
+                };
+            }
+
+            // Mettre à jour isNight basé sur is_day si pas d'override manuel
+            if (!this.manualTimeOverride) {
+                this.isNight = data.current_weather.is_day === 0;
+            }
+
             this.lastUpdate = now;
         } catch (e) {
             console.log('Failed to fetch weather data');
-            this.weatherData = {
-                temperature: 20,
-                weatherCode: 0,
-                description: 'Ensoleillé',
-                icon: '☀️'
-            };
+            if (!this.weatherData) {
+                this.weatherData = {
+                    temperature: 20,
+                    weatherCode: 0,
+                    description: 'Ensoleillé',
+                    icon: '☀️'
+                };
+            }
         }
     }
 
     toggleTime(): void {
         this.isNight = !this.isNight;
+        this.manualTimeOverride = true;
     }
 
     cycleWeather(): void {
@@ -207,5 +235,13 @@ export class WeatherManager {
 
     getIsNight(): boolean {
         return this.isNight;
+    }
+
+    getManualTimeOverride(): boolean {
+        return this.manualTimeOverride;
+    }
+
+    getManualWeatherOverride(): boolean {
+        return this.manualWeatherIndex !== -1;
     }
 }
