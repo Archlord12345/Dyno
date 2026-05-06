@@ -240,15 +240,20 @@ class Game {
         // Séparation minimale entre TOUS les obstacles
         if (this.obstacles.length > 0) {
             const lastObstacle = this.obstacles[this.obstacles.length - 1];
-            // La distance minimale augmente avec la vitesse pour laisser le temps de réagir
-            const minDistance = (200 + this.gameSpeed * 12) * this.scaleFactor;
-            if (x - (lastObstacle.x + lastObstacle.width) < minDistance) {
-                return; // Trop proche, on attend le prochain cycle
+            if (lastObstacle) {
+                // La distance minimale augmente avec la vitesse pour laisser le temps de réagir
+                const minDistance = (200 + this.gameSpeed * 12) * this.scaleFactor;
+                if (x - (lastObstacle.x + lastObstacle.width) < minDistance) {
+                    return; // Trop proche, on attend le prochain cycle
+                }
             }
         }
 
         const availableObstacles = this.zoneManager.getAvailableObstacles();
+        const obstacleType = availableObstacles[Math.floor(Math.random() * availableObstacles.length)] || '';
         
+        if (!obstacleType) return;
+
         // Probabilité d'apparition : 25% oiseau, 75% ennemi au sol
         if (Math.random() < 0.25) {
             const height = Math.random();
@@ -266,8 +271,6 @@ class Game {
             bird.height = 30 * this.scaleFactor;
             this.obstacles.push(bird);
         } else {
-            const obstacleType = availableObstacles[Math.floor(Math.random() * availableObstacles.length)];
-            
             if (obstacleType === 'frog') {
                 const enemy = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'frog');
                 enemy.width = 50 * this.scaleFactor;
@@ -292,6 +295,31 @@ class Game {
                 const enemy = new Enemy(x, this.groundY - 80 * this.scaleFactor, 'zombie');
                 enemy.width = 60 * this.scaleFactor;
                 enemy.height = 80 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            } else if (['sedan', 'police', 'taxi', 'truck'].includes(obstacleType)) {
+                // Utiliser la classe Enemy avec un hack temporaire ou créer une nouvelle classe
+                // Pour faire simple, on utilise Enemy mais on change le chemin d'image
+                const enemy = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'frog'); // On triche sur le type
+                enemy.width = 80 * this.scaleFactor;
+                enemy.height = 50 * this.scaleFactor;
+                
+                // On surcharge le chargement d'image pour les voitures
+                const carImg = new Image();
+                let carPath = 'assets/enemies/sol/Cars/sedan.png';
+                if (obstacleType === 'police') carPath = 'assets/enemies/sol/Cars/police.png';
+                if (obstacleType === 'taxi') carPath = 'assets/enemies/sol/Cars/taxi.png';
+                if (obstacleType === 'truck') {
+                    carPath = 'assets/enemies/sol/Cars/truck.png';
+                    enemy.width = 100 * this.scaleFactor;
+                    enemy.height = 60 * this.scaleFactor;
+                    enemy.y = this.groundY - 60 * this.scaleFactor;
+                }
+                carImg.src = carPath;
+                
+                // Utilisation de any pour accéder aux propriétés privées pour ce hack rapide
+                (enemy as any).imageCache.set(carPath, carImg);
+                (enemy as any).sprites.walk = [carPath.split('/').pop()?.replace('.png', '')];
+                (enemy as any).enemyType = 'cars'; // Pour le path dans draw
                 this.obstacles.push(enemy);
             }
         }

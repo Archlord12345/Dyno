@@ -77,7 +77,7 @@ export class ZoneManager {
                 { x: 800, y: 100, width: 256, height: 256, type: 'large', color: 'gray', roofColor: 'grey' }
             ],
             distanceToNext: 2500,
-            obstacles: ['ladybug', 'souris', 'falling', 'zombie']
+            obstacles: ['ladybug', 'souris', 'falling', 'zombie', 'truck', 'sedan']
         });
 
         // Zone 4: Centre-ville
@@ -91,7 +91,7 @@ export class ZoneManager {
                 { x: 600, y: 50, width: 320, height: 320, type: 'large', color: 'dark', roofColor: 'yellow' }
             ],
             distanceToNext: 3000,
-            obstacles: ['frog', 'souris', 'falling', 'zombie']
+            obstacles: ['frog', 'souris', 'falling', 'zombie', 'police', 'taxi', 'sedan']
         });
     }
 

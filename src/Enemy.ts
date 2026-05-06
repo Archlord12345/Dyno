@@ -135,6 +135,9 @@ export class Enemy implements GameObject {
             
             if (this.enemyType === 'zombie') {
                 imgPath = `assets/enemies/sol/Zombie/Poses/${spriteName}.png`;
+            } else if (this.enemyType === (this as any).enemyType && (this as any).enemyType === 'cars') {
+                // Hack pour les voitures : le spriteName est déjà le nom du fichier
+                imgPath = `assets/enemies/sol/Cars/${spriteName}.png`;
             }
             
             let img = this.imageCache.get(imgPath);

@@ -36,13 +36,15 @@ export class FallingEnemy implements GameObject {
 
     private async loadSprites(): Promise<void> {
         try {
+            const idleImg = await this.asyncLoadImage('assets/enemies/tombe/bloc/block_idle.png');
             const fallImg = await this.asyncLoadImage('assets/enemies/tombe/bloc/block_fall.png');
             const restImg = await this.asyncLoadImage('assets/enemies/tombe/bloc/block_rest.png');
-            
+
+            this.images.set('idle', idleImg);
             this.images.set('falling', fallImg);
             this.images.set('resting', restImg);
-            
-            this.image = fallImg;
+
+            this.image = idleImg;
             this.imagesLoaded = true;
         } catch (e) {
             console.log('Failed to load FallingEnemy sprites');
@@ -53,12 +55,15 @@ export class FallingEnemy implements GameObject {
         this.x -= speed;
 
         // Trigger fall when close to player (player is around x=80)
-        if (this.state === 'idle' && this.x < 500) {
+        // On déclenche un peu avant pour que ça tombe DEVANT le joueur
+        const triggerDistance = 450;
+        if (this.state === 'idle' && this.x < triggerDistance) {
             this.state = 'falling';
+            this.image = this.images.get('falling') || this.image;
         }
 
         if (this.state === 'falling') {
-            this.fallSpeed += this.gravity;
+            this.fallSpeed += this.gravity * 1.5; // Plus rapide pour être plus dangereux
             this.y += this.fallSpeed;
 
             // Ajuster targetY selon la hauteur actuelle
