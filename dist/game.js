@@ -68,6 +68,12 @@ export class Game {
             this.highScore = parseInt(saved);
         }
     }
+    saveHighscore() {
+        if (this.score > this.highScore) {
+            this.highScore = Math.floor(this.score);
+            localStorage.setItem('dino-highscore', this.highScore.toString());
+        }
+    }
     setupInputs() {
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
@@ -240,7 +246,7 @@ export class Game {
         }
     }
     checkCollision(obj1, obj2) {
-        const margin = 5 * this.scaleFactor; // Marge réduite pour plus de précision
+        const margin = 5 * this.scaleFactor;
         return (obj1.x + margin < obj2.x + obj2.width - margin &&
             obj1.x + obj1.width - margin > obj2.x + margin &&
             obj1.y + margin < obj2.y + obj2.height - margin &&
@@ -248,6 +254,7 @@ export class Game {
     }
     gameOver() {
         this.isPlaying = false;
+        this.saveHighscore();
         this.audioManager.playCollision();
         this.audioManager.stopBackgroundMusic();
         this.gameOverElement.classList.remove('hidden');
@@ -258,6 +265,9 @@ export class Game {
         if (this.isPlaying && !this.isPaused) {
             this.score += 0.1;
             this.totalDistance += this.gameSpeed / 60;
+            if (this.score > this.highScore) {
+                this.highScore = Math.floor(this.score);
+            }
             if (this.zoneManager.updateScore(this.score)) {
                 this.background.updateZone();
                 this.weatherManager.fetchWeather();
@@ -275,12 +285,9 @@ export class Game {
             let onPlatform = false;
             for (let i = 0; i < this.obstacles.length; i++) {
                 const obs = this.obstacles[i];
-                // Détection spécifique pour les plateformes
                 const isPlatform = obs.enemyType === 'platform';
                 if (this.checkCollision(this.dino, obs)) {
                     if (isPlatform) {
-                        // Collision par le haut (Atterrissage)
-                        // On vérifie si les pieds du dino sont au dessus de la moitié supérieure de la plateforme
                         const dinoFeetY = this.dino.y + this.dino.height;
                         const platformTopY = obs.y;
                         if (this.dino.velocityY >= 0 && dinoFeetY <= platformTopY + 20 * this.scaleFactor) {
@@ -290,8 +297,6 @@ export class Game {
                             onPlatform = true;
                         }
                         else {
-                            // Collision latérale : on bloque le joueur (il meurt s'il fonce dedans?)
-                            // Pour l'instant on considère que c'est une collision normale qui fait perdre de la vie
                             this.health -= 1;
                             this.obstacles.splice(i, 1);
                             this.audioManager.playCollision();
@@ -300,7 +305,6 @@ export class Game {
                         }
                     }
                     else {
-                        // Ennemi normal
                         this.health -= 1;
                         this.obstacles.splice(i, 1);
                         this.audioManager.playCollision();
@@ -394,8 +398,14 @@ export class Game {
         }
     }
     drawUI() {
-        const scoreStr = Math.floor(this.score).toString().padStart(6, '0');
-        this.numberRenderer.draw(this.ctx, scoreStr, 20 * this.scaleFactor, 20 * this.scaleFactor, 0.8 * this.scaleFactor);
+        // Affichage du Score Maximum au milieu
+        const highscoreStr = this.highScore.toString().padStart(6, '0');
+        const centerX = this.canvas.width / 2 - (6 * 32 * 0.8 * this.scaleFactor) / 2;
+        this.numberRenderer.draw(this.ctx, highscoreStr, centerX, 20 * this.scaleFactor, 0.8 * this.scaleFactor);
+        // Affichage du Score Courant en haut à droite (optionnel mais recommandé)
+        const currentScoreStr = Math.floor(this.score).toString().padStart(6, '0');
+        this.numberRenderer.draw(this.ctx, currentScoreStr, this.canvas.width - 150 * this.scaleFactor, 20 * this.scaleFactor, 0.5 * this.scaleFactor);
+        // Hearts
         for (let i = 0; i < 3; i++) {
             let lifeImg;
             const heartValue = this.health - (i * 2);
@@ -406,7 +416,7 @@ export class Game {
             else
                 lifeImg = this.lifeImages[2];
             if (lifeImg) {
-                this.ctx.drawImage(lifeImg, 20 * this.scaleFactor + i * 40 * this.scaleFactor, 60 * this.scaleFactor, 32 * this.scaleFactor, 32 * this.scaleFactor);
+                this.ctx.drawImage(lifeImg, 20 * this.scaleFactor + i * 40 * this.scaleFactor, 20 * this.scaleFactor, 32 * this.scaleFactor, 32 * this.scaleFactor);
             }
         }
     }
