@@ -11,26 +11,42 @@ export class FallingEnemy implements GameObject {
     private fallSpeed = 0;
     private gravity = 0.5;
     private bounce = -0.3;
-    private imagesLoaded = false;
+    private images: Map<string, HTMLImageElement> = new Map();
     private image: HTMLImageElement | null = null;
+    private imagesLoaded = false;
     private state: 'idle' | 'falling' | 'resting' = 'idle';
 
     constructor(x: number, y: number, groundY: number) {
         this.x = x;
         this.y = -100; // Start off-screen
         this.initialY = -100;
-        this.targetY = groundY - 60;
+        this.targetY = groundY; // Sera ajusté avec la hauteur
         this.loadSprites();
     }
 
-    private async loadSprites(): Promise<void> {
-        this.image = new Image();
-        this.image.src = 'assets/enemies/tombe/bloc/block_fall.png';
+    private async asyncLoadImage(src: string): Promise<HTMLImageElement> {
+        const img = new Image();
+        img.src = src;
         await new Promise((resolve) => {
-            this.image!.onload = resolve;
-            this.image!.onerror = resolve;
+            img.onload = resolve;
+            img.onerror = resolve;
         });
-        this.imagesLoaded = this.image.complete && this.image.naturalWidth > 0;
+        return img;
+    }
+
+    private async loadSprites(): Promise<void> {
+        try {
+            const fallImg = await this.asyncLoadImage('assets/enemies/tombe/bloc/block_fall.png');
+            const restImg = await this.asyncLoadImage('assets/enemies/tombe/bloc/block_rest.png');
+            
+            this.images.set('falling', fallImg);
+            this.images.set('resting', restImg);
+            
+            this.image = fallImg;
+            this.imagesLoaded = true;
+        } catch (e) {
+            console.log('Failed to load FallingEnemy sprites');
+        }
     }
 
     update(speed: number): void {
@@ -45,14 +61,17 @@ export class FallingEnemy implements GameObject {
             this.fallSpeed += this.gravity;
             this.y += this.fallSpeed;
 
-            if (this.y >= this.targetY) {
-                this.y = this.targetY;
+            // Ajuster targetY selon la hauteur actuelle
+            const actualTargetY = this.targetY - this.height;
+
+            if (this.y >= actualTargetY) {
+                this.y = actualTargetY;
                 this.fallSpeed *= this.bounce;
                 
                 if (Math.abs(this.fallSpeed) < 1) {
                     this.state = 'resting';
                     this.fallSpeed = 0;
-                    if (this.image) this.image.src = 'assets/enemies/tombe/bloc/block_rest.png';
+                    this.image = this.images.get('resting') || this.image;
                 }
             }
         }
