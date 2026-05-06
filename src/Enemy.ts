@@ -5,7 +5,7 @@ export class Enemy implements GameObject {
     y: number;
     width = 60;
     height = 60;
-    private enemyType: 'frog' | 'ladybug' | 'souris';
+    private enemyType: 'frog' | 'ladybug' | 'souris' | 'zombie';
     private animationFrame = 0;
     private animationTimer = 0;
     private sprites: { [key: string]: string[] } = {};
@@ -18,7 +18,7 @@ export class Enemy implements GameObject {
     private readonly JUMP_DURATION = 24; // ~0.4s at 60fps
     private initialY: number;
 
-    constructor(x: number, y: number, type: 'frog' | 'ladybug' | 'souris' = 'frog') {
+    constructor(x: number, y: number, type: 'frog' | 'ladybug' | 'souris' | 'zombie' = 'frog') {
         this.x = x;
         this.y = y;
         this.initialY = y;
@@ -37,6 +37,9 @@ export class Enemy implements GameObject {
             } else if (this.enemyType === 'souris') {
                 this.sprites.walk = ['mouse_walk_a', 'mouse_walk_b'];
                 this.sprites.idle = ['souris_idle'];
+            } else if (this.enemyType === 'zombie') {
+                this.sprites.walk = ['zombie_walk1', 'zombie_walk2'];
+                this.sprites.idle = ['zombie_idle'];
             }
             
             const spritePaths = [];
@@ -56,6 +59,12 @@ export class Enemy implements GameObject {
                     'assets/enemies/sol/souris/souris_idle.png',
                     'assets/enemies/sol/souris/mouse_walk_a.png',
                     'assets/enemies/sol/souris/mouse_walk_b.png'
+                );
+            } else if (this.enemyType === 'zombie') {
+                spritePaths.push(
+                    'assets/enemies/sol/Zombie/Poses/zombie_idle.png',
+                    'assets/enemies/sol/Zombie/Poses/zombie_walk1.png',
+                    'assets/enemies/sol/Zombie/Poses/zombie_walk2.png'
                 );
             }
 
@@ -122,7 +131,12 @@ export class Enemy implements GameObject {
         const currentSprites = this.sprites[this.currentAnimation];
         if (currentSprites && currentSprites[this.animationFrame]) {
             const spriteName = currentSprites[this.animationFrame];
-            const imgPath = `assets/enemies/sol/${this.enemyType}/${spriteName}.png`;
+            let imgPath = `assets/enemies/sol/${this.enemyType}/${spriteName}.png`;
+            
+            if (this.enemyType === 'zombie') {
+                imgPath = `assets/enemies/sol/Zombie/Poses/${spriteName}.png`;
+            }
+            
             let img = this.imageCache.get(imgPath);
             
             if (!img) {
@@ -150,6 +164,9 @@ export class Enemy implements GameObject {
         } else if (this.enemyType === 'ladybug') {
             ctx.fillStyle = '#F44336';
             ctx.fillRect(this.x + 15, this.y + 15, 30, 30);
+        } else if (this.enemyType === 'zombie') {
+            ctx.fillStyle = '#7B904B'; // Vert zombie
+            ctx.fillRect(this.x + 10, this.y, 40, 60);
         } else {
             ctx.fillStyle = '#795548';
             ctx.fillRect(this.x + 10, this.y + 20, 40, 20);

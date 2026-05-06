@@ -259,6 +259,11 @@ class Game {
             enemy.width = 60 * this.scaleFactor;
             enemy.height = 60 * this.scaleFactor;
             this.obstacles.push(enemy);
+        } else if (obstacleType === 'zombie') {
+            const enemy = new Enemy(x, this.groundY - 80 * this.scaleFactor, 'zombie');
+            enemy.width = 60 * this.scaleFactor;
+            enemy.height = 80 * this.scaleFactor;
+            this.obstacles.push(enemy);
         }
         
         // Ajouter des oiseaux occasionnellement dans toutes les zones
