@@ -83,30 +83,27 @@ class Game {
     }
     updateGamePositions() {
         // Mettre à jour la position du personnage avec des tailles optimisées pour le saut
-        this.dino.x = 80 * this.scaleFactor; // Plus d'espace sur la gauche
-        this.dino.y = this.groundY - 60 * this.scaleFactor; // Position plus haute pour mieux sauter
-        this.dino.width = 60 * this.scaleFactor; // Taille plus visible
+        this.dino.x = 80 * this.scaleFactor;
+        this.dino.y = this.groundY - 60 * this.scaleFactor;
+        this.dino.width = 60 * this.scaleFactor;
         this.dino.height = 60 * this.scaleFactor;
         this.dino.normalHeight = 60 * this.scaleFactor;
         this.dino.duckHeight = 30 * this.scaleFactor;
-        // Adapter la physique pour un meilleur saut
-        this.dino.jumpForce = -16 * this.scaleFactor; // Saut plus puissant
-        this.dino.gravity = 0.9; // Gravité ajustée
-        // Mettre à jour la position du sol
+        this.dino.jumpForce = -16 * this.scaleFactor;
+        this.dino.gravity = 0.9;
         this.ground.y = this.groundY;
-        // Mettre à jour la distance parcourue et le score
         if (this.isPlaying) {
             this.totalDistance += this.gameSpeed;
-            this.score += Math.floor(this.gameSpeed / 10);
-            this.scoreElement.textContent = `Score: ${this.score} | Zone: ${this.zoneManager.getCurrentZone().name}`;
-            // Mettre à jour le gestionnaire de zones
-            this.zoneManager.updateDistance(this.gameSpeed);
-            // Vérifier si on a changé de zone
+            this.score += this.gameSpeed / 60;
             const currentZone = this.zoneManager.getCurrentZone();
+            this.scoreElement.textContent = `Score: ${Math.floor(this.score)} | Zone: ${currentZone.name}`;
+            this.zoneManager.updateDistance(this.gameSpeed);
             if (this.totalDistance - this.lastZoneCheck >= currentZone.distanceToNext) {
                 this.lastZoneCheck = this.totalDistance;
                 this.background.updateZone();
-                console.log(`Nouvelle zone: ${currentZone.name}`);
+                this.ground.reset(); // On reset le sol pour la nouvelle zone
+                this.weatherManager.fetchWeather();
+                console.log(`Nouvelle zone: ${this.zoneManager.getCurrentZone().name}`);
             }
         }
     }
