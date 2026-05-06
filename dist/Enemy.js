@@ -12,7 +12,7 @@ export class Enemy {
     imageCache = new Map();
     isJumping = false;
     jumpTimer = 0;
-    JUMP_DURATION = 24; // ~0.4s at 60fps
+    JUMP_DURATION = 24;
     initialY;
     constructor(x, y, type = 'ladybug') {
         this.x = x;
@@ -28,26 +28,27 @@ export class Enemy {
                 this.sprites.idle = ['ladybug_idle'];
             }
             else if (this.enemyType === 'souris') {
-                this.sprites.walk = ['mouse_walk_a', 'mouse_walk_b'];
+                this.sprites.walk = ['souris_walk_a', 'souris_walk_b'];
                 this.sprites.idle = ['souris_idle'];
             }
             else if (this.enemyType === 'zombie') {
-                this.sprites.walk = ['zombie_walk1', 'zombie_walk2'];
+                this.sprites.walk = ['zombie_walk_a', 'zombie_walk_b'];
                 this.sprites.idle = ['zombie_idle'];
             }
-            else if (this.enemyType === 'cars' || this.enemyType === 'ufo') {
-                this.sprites.walk = ['default'];
-                this.sprites.idle = ['default'];
+            else if (this.enemyType === 'ufo' || this.enemyType === 'cars' || this.enemyType === 'platform') {
+                // Sprites gérés dynamiquement dans Game.ts
+                this.imagesLoaded = true;
+                return;
             }
             const spritePaths = [];
             if (this.enemyType === 'ladybug') {
                 spritePaths.push('assets/enemies/sol/ladybug/ladybug_idle.png', 'assets/enemies/sol/ladybug/ladybug_walk_a.png', 'assets/enemies/sol/ladybug/ladybug_walk_b.png');
             }
             else if (this.enemyType === 'souris') {
-                spritePaths.push('assets/enemies/sol/souris/souris_idle.png', 'assets/enemies/sol/souris/mouse_walk_a.png', 'assets/enemies/sol/souris/mouse_walk_b.png');
+                spritePaths.push('assets/enemies/sol/souris/souris_idle.png', 'assets/enemies/sol/souris/souris_walk_a.png', 'assets/enemies/sol/souris/souris_walk_b.png');
             }
             else if (this.enemyType === 'zombie') {
-                spritePaths.push('assets/enemies/sol/Zombie/Poses/zombie_idle.png', 'assets/enemies/sol/Zombie/Poses/zombie_walk1.png', 'assets/enemies/sol/Zombie/Poses/zombie_walk2.png');
+                spritePaths.push('assets/enemies/sol/zombie/zombie_idle.png', 'assets/enemies/sol/zombie/zombie_walk_a.png', 'assets/enemies/sol/zombie/zombie_walk_b.png');
             }
             for (const path of spritePaths) {
                 const img = new Image();
@@ -56,52 +57,53 @@ export class Enemy {
                     img.onload = resolve;
                     img.onerror = resolve;
                 });
-                this.imageCache.set(path, img);
+                const name = path.split('/').pop()?.replace('.png', '') || '';
+                this.imageCache.set(name, img);
             }
             this.imagesLoaded = true;
         }
         catch (e) {
-            console.log(`Failed to load ${this.enemyType} sprites:`, e);
+            console.log('Failed to load enemy sprites:', e);
         }
     }
     update(speed) {
         this.x -= speed;
-        if (this.imagesLoaded) {
-            this.animationTimer++;
-            const animSpeed = this.isJumping ? 4 : 12;
-            if (this.animationTimer > animSpeed) {
-                const frames = this.sprites[this.currentAnimation];
-                if (frames) {
-                    this.animationFrame = (this.animationFrame + 1) % frames.length;
-                }
+        if (this.enemyType === 'ufo') {
+            this.y = this.initialY + Math.sin(Date.now() / 200) * 20;
+        }
+        // Saut aléatoire pour ladybug et souris
+        if ((this.enemyType === 'ladybug' || this.enemyType === 'souris') && !this.isJumping && Math.random() < 0.01) {
+            this.isJumping = true;
+            this.jumpTimer = 0;
+        }
+        if (this.isJumping) {
+            this.jumpTimer++;
+            const jumpHeight = 50;
+            this.y = this.initialY - Math.sin((this.jumpTimer / this.JUMP_DURATION) * Math.PI) * jumpHeight;
+            if (this.jumpTimer >= this.JUMP_DURATION) {
+                this.isJumping = false;
+                this.y = this.initialY;
+            }
+        }
+        this.animationTimer++;
+        const currentSprites = this.sprites[this.currentAnimation];
+        if (currentSprites && currentSprites.length > 1) {
+            if (this.animationTimer > 10) {
+                this.animationFrame = (this.animationFrame + 1) % currentSprites.length;
                 this.animationTimer = 0;
             }
         }
     }
     draw(ctx) {
-        if (!this.imagesLoaded && !['cars', 'ufo'].includes(this.enemyType)) {
+        if (!this.imagesLoaded)
             return;
-        }
         const currentSprites = this.sprites[this.currentAnimation];
-        if (currentSprites && (currentSprites[this.animationFrame] || ['cars', 'ufo'].includes(this.enemyType))) {
+        if (currentSprites && currentSprites[this.animationFrame]) {
             const spriteName = currentSprites[this.animationFrame];
-            let imgPath = `assets/enemies/sol/${this.enemyType}/${spriteName}.png`;
-            if (this.enemyType === 'zombie') {
-                imgPath = `assets/enemies/sol/Zombie/Poses/${spriteName}.png`;
-            }
-            else if (this.enemyType === 'cars') {
-                imgPath = `assets/enemies/sol/Cars/${spriteName}.png`;
-            }
-            else if (this.enemyType === 'ufo') {
-                imgPath = `assets/enemies/airs/ovnie/${spriteName}.png`;
-            }
-            let img = this.imageCache.get(imgPath);
-            if (!img) {
-                img = new Image();
-                img.src = imgPath;
-                this.imageCache.set(imgPath, img);
-            }
-            if (img.complete && img.naturalWidth > 0) {
+            if (!spriteName)
+                return;
+            const img = this.imageCache.get(spriteName);
+            if (img && img.complete) {
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(img, Math.floor(this.x), Math.floor(this.y), this.width, this.height);
                 ctx.imageSmoothingEnabled = true;

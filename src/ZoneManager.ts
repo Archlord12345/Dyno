@@ -18,6 +18,7 @@ export interface Zone {
     };
     platforms: string[];
     obstacles: string[];
+    ground: string;
     distanceToNext: number;
 }
 
@@ -57,6 +58,7 @@ export class ZoneManager {
             },
             platforms: ['assets/map/plateformes/white_p1.png', 'assets/map/plateformes/white_p2.png', 'assets/map/plateformes/white_p3.png'],
             obstacles: ['ladybug', 'mouse', 'barrier'],
+            ground: 'assets/map/sol/white_zone.svg',
             distanceToNext: 1500
         });
 
@@ -71,6 +73,7 @@ export class ZoneManager {
             },
             platforms: ['assets/map/plateformes/green_p1.png', 'assets/map/plateformes/green_p2.png', 'assets/map/plateformes/green_p3.png'],
             obstacles: ['ladybug', 'souris', 'falling', 'zombie', 'barrier', 'block'],
+            ground: 'assets/map/sol/green_zone.svg',
             distanceToNext: 2000
         });
 
@@ -85,6 +88,7 @@ export class ZoneManager {
             },
             platforms: ['assets/map/plateformes/orange_p1.png', 'assets/map/plateformes/orange_p2.png', 'assets/map/plateformes/orange_p3.png'],
             obstacles: ['ladybug', 'souris', 'falling', 'zombie', 'truck', 'sedan', 'barrier', 'block', 'bus'],
+            ground: 'assets/map/sol/orange_zone.svg',
             distanceToNext: 2500
         });
     }

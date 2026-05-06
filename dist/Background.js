@@ -1,15 +1,10 @@
 import { ZoneManager } from './ZoneManager.js';
 export class Background {
     tileImages = new Map();
-    houseImages = new Map();
     loaded = false;
-    canvasWidth;
-    canvasHeight;
     zoneManager;
     offsetX = 0;
-    constructor(canvasWidth, canvasHeight) {
-        this.canvasWidth = canvasWidth;
-        this.canvasHeight = canvasHeight;
+    constructor() {
         this.zoneManager = ZoneManager.getInstance();
         this.loadBackground();
     }
@@ -39,11 +34,10 @@ export class Background {
         }
     }
     draw(ctx) {
-        if (!this.loaded) {
-            ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+        const canvasWidth = ctx.canvas.width;
+        const canvasHeight = ctx.canvas.height;
+        if (!this.loaded)
             return;
-        }
         const currentZone = this.zoneManager.getCurrentZone();
         const tileSize = 64;
         const bgSpeed = 0.5;
@@ -52,21 +46,40 @@ export class Background {
         const bodyPath = currentZone.background.body[0];
         const headImg = headPath ? this.tileImages.get(headPath) : undefined;
         const bodyImg = bodyPath ? this.tileImages.get(bodyPath) : undefined;
-        const footTiles = currentZone.background.foot;
-        const startX = -(this.offsetX * bgSpeed) % (tileSize * footTiles.length);
-        for (let x = startX - tileSize; x < this.canvasWidth + tileSize; x += tileSize) {
-            const tileIndex = Math.floor(Math.abs((x - startX) / tileSize)) % footTiles.length;
-            const footPath = footTiles[tileIndex];
-            const footImg = footPath ? this.tileImages.get(footPath) : undefined;
+        const startX = -(this.offsetX * bgSpeed) % tileSize;
+        for (let x = startX - tileSize; x < canvasWidth + tileSize; x += tileSize) {
+            // Dessiner la tête (ciel)
             if (headImg)
                 ctx.drawImage(headImg, x, 0, tileSize, tileSize);
+            // Dessiner le corps (remplissage)
             if (bodyImg) {
-                for (let y = tileSize; y < this.canvasHeight - tileSize; y += tileSize) {
+                for (let y = tileSize; y < canvasHeight - tileSize; y += tileSize) {
                     ctx.drawImage(bodyImg, x, y, tileSize, tileSize);
                 }
             }
-            if (footImg)
-                ctx.drawImage(footImg, x, this.canvasHeight - tileSize, tileSize, tileSize);
+        }
+        ctx.imageSmoothingEnabled = true;
+    }
+    drawFoot(ctx) {
+        const canvasWidth = ctx.canvas.width;
+        const canvasHeight = ctx.canvas.height;
+        if (!this.loaded)
+            return;
+        const currentZone = this.zoneManager.getCurrentZone();
+        const tileSize = 64;
+        const footTiles = currentZone.background.foot;
+        const bgSpeed = 0.8; // Un peu plus rapide pour le parallaxe du sol
+        ctx.imageSmoothingEnabled = false;
+        const patternWidth = tileSize * footTiles.length;
+        const startX = -(this.offsetX * bgSpeed) % patternWidth;
+        for (let x = startX - patternWidth; x < canvasWidth + patternWidth; x += tileSize) {
+            const index = Math.floor(Math.abs((x - startX) / tileSize)) % footTiles.length;
+            const footPath = footTiles[index];
+            const img = footPath ? this.tileImages.get(footPath) : undefined;
+            if (img) {
+                // On dessine le pied AU DESSUS du sol (groundY)
+                ctx.drawImage(img, x, canvasHeight - tileSize, tileSize, tileSize);
+            }
         }
         ctx.imageSmoothingEnabled = true;
     }

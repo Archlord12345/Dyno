@@ -28,8 +28,8 @@ export class Game {
     private zoneManager: ZoneManager;
     private numberRenderer: NumberRenderer;
     private lifeImages: HTMLImageElement[] = [];
-    private health = 6; // 3 coeurs * 2
-    private groundY = 350;
+    private health = 6;
+    private groundY = 0;
     private scaleFactor = 1;
     private totalDistance = 0;
     private particles: {x: number, y: number, speed: number, length: number}[] = [];
@@ -39,7 +39,7 @@ export class Game {
         this.ctx = this.canvas.getContext('2d')!;
         this.dino = new Dino();
         this.ground = new Ground();
-        this.background = new Background(this.canvas.width, this.canvas.height);
+        this.background = new Background();
         this.gameOverElement = document.getElementById('game-over')!;
         this.audioManager = new AudioManager();
         this.weatherManager = new WeatherManager();
@@ -91,6 +91,9 @@ export class Game {
             if (e.code === 'KeyP') {
                 this.togglePause();
             }
+            if (e.code === 'KeyR') {
+                this.start();
+            }
         });
 
         window.addEventListener('keyup', (e) => {
@@ -108,13 +111,29 @@ export class Game {
                 this.audioManager.playJump();
             }
         });
+
+        document.getElementById('toggle-time')?.addEventListener('click', () => {
+            this.weatherManager.toggleTime();
+        });
+
+        document.getElementById('cycle-weather')?.addEventListener('click', () => {
+            this.weatherManager.cycleWeather();
+        });
+
+        document.getElementById('restart-game')?.addEventListener('click', () => {
+            this.start();
+        });
+
+        document.getElementById('restart-btn-gameover')?.addEventListener('click', () => {
+            this.start();
+        });
     }
 
     private resize(): void {
         this.canvas.width = window.innerWidth;
         this.canvas.height = Math.min(window.innerHeight, 400);
         this.scaleFactor = this.canvas.height / 400;
-        this.groundY = this.canvas.height - 50 * this.scaleFactor;
+        this.groundY = this.canvas.height - 64; 
     }
 
     private start(): void {
@@ -148,31 +167,43 @@ export class Game {
         
         if (obstacleType === 'mouse') obstacleType = 'souris';
 
+        if (Math.random() < 0.15) {
+            this.spawnPlatform(x);
+            return;
+        }
+
         if (Math.random() < 0.20) {
             const isUFO = Math.random() < 0.5;
             if (isUFO) {
                 const colors = ['Beige', 'Blue', 'Green', 'Pink', 'Yellow'];
                 const color = colors[Math.floor(Math.random() * colors.length)];
-                const ufo = new Enemy(x, this.groundY - 180 * this.scaleFactor, 'ufo');
-                ufo.width = 80 * this.scaleFactor;
-                ufo.height = 60 * this.scaleFactor;
-                (ufo as any).sprites.walk = [`ship${color}_manned`];
+                const ufo = new Enemy(x, this.groundY - 150 * this.scaleFactor, 'ufo');
+                ufo.width = 64 * this.scaleFactor;
+                ufo.height = 48 * this.scaleFactor;
+                const spriteName = `ship${color}_manned`;
+                ufo.sprites.walk = [spriteName];
+                const img = new Image();
+                img.src = `assets/enemies/airs/ufo/${spriteName}.png`;
+                ufo.imageCache.set(spriteName, img);
                 this.obstacles.push(ufo);
             } else {
-                const bird = new Bird(x, this.groundY - 100 * this.scaleFactor);
+                const bird = new Bird(x, this.groundY - 80 * this.scaleFactor);
                 this.obstacles.push(bird);
             }
         } else {
             if (['sedan', 'police', 'taxi', 'truck', 'bus', 'ambulance', 'van'].includes(obstacleType)) {
-                const car = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'cars');
+                const car = new Enemy(x, this.groundY - 40 * this.scaleFactor, 'cars');
                 car.width = 80 * this.scaleFactor;
-                car.height = 50 * this.scaleFactor;
-                if (obstacleType === 'truck') {
-                    car.width = 120 * this.scaleFactor;
-                    car.height = 80 * this.scaleFactor;
-                    car.y = this.groundY - 80 * this.scaleFactor;
+                car.height = 40 * this.scaleFactor;
+                if (obstacleType === 'truck' || obstacleType === 'bus') {
+                    car.width = 100 * this.scaleFactor;
+                    car.height = 64 * this.scaleFactor;
+                    car.y = this.groundY - 64 * this.scaleFactor;
                 }
-                (car as any).sprites.walk = [obstacleType];
+                car.sprites.walk = [obstacleType];
+                const img = new Image();
+                img.src = `assets/enemies/sol/Cars/${obstacleType}.png`;
+                car.imageCache.set(obstacleType, img);
                 this.obstacles.push(car);
             } else if (obstacleType === 'block') {
                 const block = new FallingEnemy(x, this.groundY, this.groundY);
@@ -181,12 +212,12 @@ export class Game {
                 this.obstacles.push(block);
             } else if (obstacleType === 'barrier') {
                 const barrier = new Enemy(x, this.groundY - 40 * this.scaleFactor, 'cars');
-                barrier.width = 50 * this.scaleFactor;
+                barrier.width = 40 * this.scaleFactor;
                 barrier.height = 40 * this.scaleFactor;
-                (barrier as any).sprites.walk = ['barrier'];
+                barrier.sprites.walk = ['barrier'];
                 const img = new Image();
                 img.src = 'assets/enemies/sol/Props/barrier.png';
-                (barrier as any).imageCache.set('barrier', img);
+                barrier.imageCache.set('barrier', img);
                 this.obstacles.push(barrier);
             } else {
                 const enemy = new Enemy(x, this.groundY - 45 * this.scaleFactor, obstacleType as any);
@@ -194,6 +225,30 @@ export class Game {
                 enemy.height = 45 * this.scaleFactor;
                 this.obstacles.push(enemy);
             }
+        }
+    }
+
+    private spawnPlatform(x: number): void {
+        const zone = this.zoneManager.getCurrentZone();
+        const height = this.groundY - (60 + Math.random() * 80) * this.scaleFactor;
+        const length = 2 + Math.floor(Math.random() * 3);
+        
+        for (let i = 0; i < length; i++) {
+            let type = zone.platforms[1];
+            if (i === 0) type = zone.platforms[0];
+            if (i === length - 1) type = zone.platforms[2];
+            
+            if (!type) continue;
+            
+            const p = new Enemy(x + i * 64 * this.scaleFactor, height, 'platform');
+            p.width = 64 * this.scaleFactor;
+            p.height = 32 * this.scaleFactor;
+            const spriteName = `platform_${i}_${Date.now()}`;
+            p.sprites.walk = [spriteName];
+            const img = new Image();
+            img.src = type;
+            p.imageCache.set(spriteName, img);
+            this.obstacles.push(p);
         }
     }
 
@@ -212,10 +267,8 @@ export class Game {
         this.audioManager.playCollision();
         this.audioManager.stopBackgroundMusic();
         this.gameOverElement.classList.remove('hidden');
-        if (this.score > this.highScore) {
-            this.highScore = this.score;
-            localStorage.setItem('dino-highscore', this.highScore.toString());
-        }
+        document.getElementById('final-score')!.textContent = Math.floor(this.score).toString();
+        document.getElementById('best-score')!.textContent = this.highScore.toString();
     }
 
     private gameLoop(): void {
@@ -240,19 +293,39 @@ export class Game {
                 return obs.x + obs.width > -100;
             });
 
+            let onPlatform = false;
             for (let i = 0; i < this.obstacles.length; i++) {
-                if (this.checkCollision(this.dino, this.obstacles[i]!)) {
-                    this.health -= 1;
-                    this.obstacles.splice(i, 1);
-                    this.audioManager.playCollision();
-                    if (this.health <= 0) {
-                        this.gameOver();
+                const obs = this.obstacles[i]!;
+                if (this.checkCollision(this.dino, obs)) {
+                    if (obs instanceof Enemy && obs.enemyType === 'platform') {
+                        if (this.dino.velocityY > 0 && this.dino.y + this.dino.height < obs.y + 20) {
+                            this.dino.y = obs.y - this.dino.height;
+                            this.dino.velocityY = 0;
+                            this.dino.grounded = true;
+                            onPlatform = true;
+                        }
+                    } else {
+                        this.health -= 1;
+                        this.obstacles.splice(i, 1);
+                        this.audioManager.playCollision();
+                        if (this.health <= 0) {
+                            this.gameOver();
+                        }
                     }
                     break;
                 }
             }
 
             this.dino.update();
+            
+            if (!onPlatform) {
+                if (this.dino.y > this.groundY - this.dino.height) {
+                    this.dino.y = this.groundY - this.dino.height;
+                    this.dino.velocityY = 0;
+                    this.dino.grounded = true;
+                }
+            }
+            
             this.background.update(this.gameSpeed);
             this.ground.update(this.gameSpeed);
             this.updateWeatherEffects();
@@ -261,6 +334,7 @@ export class Game {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.background.draw(this.ctx);
         this.ground.draw(this.ctx);
+        this.background.drawFoot(this.ctx); // On dessine les herbes au dessus du sol
         this.dino.draw(this.ctx);
 
         for (const obs of this.obstacles) {
@@ -280,7 +354,6 @@ export class Game {
         const weather = this.weatherManager.getWeatherData();
         if (!weather) return;
 
-        // Création de particules selon le code météo
         const code = weather.weatherCode;
         const isRaining = [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code);
         const isSnowing = [71, 73, 75, 77, 85, 86].includes(code);
@@ -316,19 +389,16 @@ export class Game {
         const isStorming = [95, 96, 99].includes(code);
         const isFoggy = [45, 48].includes(code);
 
-        // Effet de brouillard
         if (isFoggy) {
             this.ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
 
-        // Effet de nuit
         if (this.weatherManager.isNight) {
             this.ctx.fillStyle = 'rgba(26, 26, 46, 0.4)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
 
-        // Dessin des particules
         this.ctx.strokeStyle = isSnowing ? '#FFF' : '#AACCFF';
         this.ctx.lineWidth = isSnowing ? 2 : 1;
         this.particles.forEach(p => {
@@ -338,7 +408,6 @@ export class Game {
             this.ctx.stroke();
         });
 
-        // Flash d'orage
         if (isStorming && Math.random() < 0.01) {
             this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -349,15 +418,13 @@ export class Game {
         const scoreStr = Math.floor(this.score).toString().padStart(6, '0');
         this.numberRenderer.draw(this.ctx, scoreStr, 20 * this.scaleFactor, 20 * this.scaleFactor, 0.8 * this.scaleFactor);
 
-        // Dessiner les vies (modular life system)
-        // 6 HP total. 3 emplacements de coeurs.
         for (let i = 0; i < 3; i++) {
             let lifeImg: HTMLImageElement | undefined;
             const heartValue = this.health - (i * 2);
             
-            if (heartValue >= 2) lifeImg = this.lifeImages[0]; // Plein
-            else if (heartValue === 1) lifeImg = this.lifeImages[1]; // Moitié
-            else lifeImg = this.lifeImages[2]; // Vide
+            if (heartValue >= 2) lifeImg = this.lifeImages[0];
+            else if (heartValue === 1) lifeImg = this.lifeImages[1];
+            else lifeImg = this.lifeImages[2];
             
             if (lifeImg) {
                 this.ctx.drawImage(lifeImg, 20 * this.scaleFactor + i * 40 * this.scaleFactor, 60 * this.scaleFactor, 32 * this.scaleFactor, 32 * this.scaleFactor);
@@ -389,3 +456,5 @@ export class Game {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
+
+new Game();

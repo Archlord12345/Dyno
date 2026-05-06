@@ -94,7 +94,7 @@ export class NumberRenderer {
         const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '%', 'X'];
         for (const char of chars) {
             const img = new Image();
-            img.src = `assets/map/numbers/${char}.png`;
+            img.src = `assets/map/numbers/${encodeURIComponent(char)}.png`;
             await new Promise((resolve) => {
                 img.onload = resolve;
                 img.onerror = resolve;
