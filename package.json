@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
+    "vercel-build": "tsc",
     "dev": "concurrently \"tsc --watch\" \"npx serve . -p 8081\"",
     "start": "npx serve . -p 8081",
     "test": "echo \"Error: no test specified\" && exit 1"
