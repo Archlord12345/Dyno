@@ -167,7 +167,7 @@ export class Game {
                 const spriteName = `ship${color}_manned`;
                 ufo.sprites.walk = [spriteName];
                 const img = new Image();
-                img.src = `assets/enemies/airs/ufo/${spriteName}.png`;
+                img.src = `assets/enemies/airs/ovnie/${spriteName}.png`;
                 ufo.imageCache.set(spriteName, img);
                 this.obstacles.push(ufo);
             }

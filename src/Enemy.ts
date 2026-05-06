@@ -38,7 +38,6 @@ export class Enemy implements GameObject {
                 this.sprites.walk = ['zombie_walk_a', 'zombie_walk_b'];
                 this.sprites.idle = ['zombie_idle'];
             } else if (this.enemyType === 'ufo' || this.enemyType === 'cars' || this.enemyType === 'platform') {
-                // Sprites gérés dynamiquement dans Game.ts
                 this.imagesLoaded = true;
                 return;
             }
@@ -87,7 +86,6 @@ export class Enemy implements GameObject {
             this.y = this.initialY + Math.sin(Date.now() / 200) * 20;
         }
 
-        // Saut aléatoire pour ladybug et souris
         if ((this.enemyType === 'ladybug' || this.enemyType === 'souris') && !this.isJumping && Math.random() < 0.01) {
             this.isJumping = true;
             this.jumpTimer = 0;
@@ -121,7 +119,8 @@ export class Enemy implements GameObject {
             const spriteName = currentSprites[this.animationFrame];
             if (!spriteName) return;
             const img = this.imageCache.get(spriteName);
-            if (img && img.complete) {
+            // Vérification robuste pour éviter InvalidStateError (broken images)
+            if (img && img.complete && img.naturalWidth > 0) {
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(img, Math.floor(this.x), Math.floor(this.y), this.width, this.height);
                 ctx.imageSmoothingEnabled = true;
