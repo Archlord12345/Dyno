@@ -24,6 +24,7 @@ export class ZoneManager {
     private currentZone: number = 0;
     private totalDistance: number = 0;
     private zoneChangeDistance: number = 2000; // Distance avant de changer de zone
+    private nextZoneAtScore: number = 100; // Score auquel la prochaine zone sera déclenchée
 
     static getInstance(): ZoneManager {
         if (!ZoneManager.instance) {
@@ -107,12 +108,19 @@ export class ZoneManager {
 
     updateDistance(distance: number): void {
         this.totalDistance += distance;
-        
-        // Vérifier si on doit changer de zone
-        const currentZone = this.getCurrentZone();
-        if (this.totalDistance >= currentZone.distanceToNext) {
+    }
+
+    /**
+     * Vérifie si le score actuel déclenche un changement de zone (tous les 100 points).
+     * @returns true si un changement de zone a eu lieu
+     */
+    updateScore(score: number): boolean {
+        if (score >= this.nextZoneAtScore) {
             this.nextZone();
+            this.nextZoneAtScore += 100;
+            return true;
         }
+        return false;
     }
 
     private nextZone(): void {
@@ -136,6 +144,7 @@ export class ZoneManager {
     reset(): void {
         this.currentZone = 0;
         this.totalDistance = 0;
+        this.nextZoneAtScore = 100;
     }
 
     getAvailableObstacles(): string[] {

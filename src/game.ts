@@ -112,17 +112,7 @@ class Game {
         
         this.ground.y = this.groundY;
         
-        if (this.isPlaying) {
-            const currentZone = this.zoneManager.getCurrentZone();
-            
-            if (this.totalDistance - this.lastZoneCheck >= currentZone.distanceToNext) {
-                this.lastZoneCheck = this.totalDistance;
-                this.background.updateZone();
-                this.ground.reset(); // On reset le sol pour la nouvelle zone
-                this.weatherManager.fetchWeather();
-                console.log(`Nouvelle zone: ${this.zoneManager.getCurrentZone().name}`);
-            }
-        }
+        // Les positions sont mises à jour, la logique de zone est gérée dans gameLoop
     }
 
     private setupInputs(): void {
@@ -350,18 +340,16 @@ class Game {
         if (this.isPlaying && !this.isPaused) {
             // Mise à jour du score et de la distance
             this.score += 0.1;
-            this.totalDistance += this.gameSpeed / 60; // Distance basée sur la vitesse
+            this.totalDistance += this.gameSpeed / 60;
             this.zoneManager.updateDistance(this.gameSpeed / 60);
             this.updateScore();
 
-            // Vérifier le changement de zone
-            const currentZone = this.zoneManager.getCurrentZone();
-            if (this.totalDistance - this.lastZoneCheck >= currentZone.distanceToNext / 10) { // Ajusté pour la démo
-                this.lastZoneCheck = this.totalDistance;
+            // Changement de zone tous les 100 points
+            if (this.zoneManager.updateScore(this.score)) {
                 this.background.updateZone();
                 this.ground.reset();
                 this.weatherManager.fetchWeather();
-                console.log(`Nouvelle zone: ${currentZone.name}`);
+                console.log(`Nouvelle zone: ${this.zoneManager.getCurrentZone().name}`);
             }
 
             // Augmentation progressive de la vitesse
