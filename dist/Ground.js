@@ -24,14 +24,7 @@ export class Ground {
         this.decorX = 0;
     }
     async loadImages() {
-        const imageConfigs = [
-            { name: 'sky', path: 'assets/map/Backgrounds/tile_0001.png' },
-            { name: 'cloud', path: 'assets/map/Tiles/tile_0000.png' },
-            { name: 'hill', path: 'assets/map/Tiles/tile_0002.png' },
-            { name: 'bush', path: 'assets/map/Tiles/tile_0003.png' },
-            { name: 'groundTop', path: 'assets/map/Tiles/tile_0004.png' },
-            { name: 'groundCenter', path: 'assets/map/Tiles/tile_0005.png' }
-        ];
+        const imageConfigs = [];
         try {
             for (const config of imageConfigs) {
                 const img = new Image();

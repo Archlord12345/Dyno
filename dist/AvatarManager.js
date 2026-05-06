@@ -1,7 +1,7 @@
 export class AvatarManager {
     static instance;
     avatars = [];
-    selectedAvatar = 'player'; // Par défaut
+    selectedAvatar = 'adventurer'; // Par défaut
     static getInstance() {
         if (!AvatarManager.instance) {
             AvatarManager.instance = new AvatarManager();
@@ -29,21 +29,7 @@ export class AvatarManager {
                 }
             });
         });
-        // Player
-        this.avatars.push({
-            id: 'player',
-            name: 'Joueur',
-            category: 'adventurer',
-            path: 'assets/personnages/Player',
-            sprites: {
-                idle: 'player_idle.png',
-                walk: ['player_walk1.png', 'player_walk2.png'],
-                jump: 'player_jump.png',
-                hurt: 'player_hurt.png',
-                duck: 'player_duck.png'
-            }
-        });
-        // Adventurer
+        // Aventurier (utilisé comme défaut à la place de player)
         this.avatars.push({
             id: 'adventurer',
             name: 'Aventurier',

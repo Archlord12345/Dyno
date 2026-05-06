@@ -96,6 +96,44 @@ export class AudioManager {
     }
 }
 
+export class NumberRenderer {
+    private images: Map<string, HTMLImageElement> = new Map();
+    private loaded = false;
+
+    constructor() {
+        this.loadImages();
+    }
+
+    private async loadImages(): Promise<void> {
+        const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '%', 'X'];
+        for (const char of chars) {
+            const img = new Image();
+            img.src = `assets/map/numbers/${char}.png`;
+            await new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve;
+            });
+            this.images.set(char, img);
+        }
+        this.loaded = true;
+    }
+
+    draw(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, scale: number = 1): void {
+        if (!this.loaded) return;
+        
+        let currentX = x;
+        for (const char of text.toUpperCase()) {
+            const img = this.images.get(char);
+            if (img && img.complete) {
+                const drawWidth = img.naturalWidth * scale;
+                const drawHeight = img.naturalHeight * scale;
+                ctx.drawImage(img, currentX, y, drawWidth, drawHeight);
+                currentX += drawWidth + 2 * scale;
+            }
+        }
+    }
+}
+
 export class WeatherManager {
     private weatherData: WeatherData | null = null;
     private lastUpdate = 0;

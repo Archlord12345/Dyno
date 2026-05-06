@@ -110,14 +110,11 @@ export class Dino {
     }
     draw(ctx) {
         if (!this.imagesLoaded || !this.sprites[this.currentAnimation]) {
-            // Dessin de secours en pixel art si les images ne sont pas chargées
-            this.drawFallback(ctx);
             return;
         }
         const currentSprites = this.sprites[this.currentAnimation];
         if (currentSprites && currentSprites[this.animationFrame]) {
             const spriteName = currentSprites[this.animationFrame];
-            // Ajuster la taille et position selon l'animation
             let drawWidth = this.width;
             let drawHeight = this.height;
             let drawY = this.y;
@@ -125,7 +122,6 @@ export class Dino {
                 drawHeight = this.duckHeight;
                 drawY = this.y + (this.normalHeight - this.duckHeight);
             }
-            // Utiliser le cache d'images pour éviter de recharger à chaque frame
             const imgPath = `${this.currentAvatarPath}/${spriteName}.png`;
             let img = this.imageCache.get(imgPath);
             if (!img) {
@@ -133,19 +129,10 @@ export class Dino {
                 img.src = imgPath;
                 this.imageCache.set(imgPath, img);
             }
-            // Dessiner le sprite
-            if (img.complete) {
+            if (img.complete && img.naturalWidth > 0) {
                 ctx.drawImage(img, this.x, drawY, drawWidth, drawHeight);
             }
-            else {
-                img.onload = () => {
-                    ctx.drawImage(img, this.x, drawY, drawWidth, drawHeight);
-                };
-            }
-            return;
         }
-        // Fallback si le sprite n'est pas disponible
-        this.drawFallback(ctx);
     }
     reset() {
         this.x = 50;
@@ -156,43 +143,6 @@ export class Dino {
         this.currentAnimation = 'idle';
         this.animationFrame = 0;
         this.animationTimer = 0;
-    }
-    drawFallback(ctx) {
-        // Dessin de secours original en pixel art
-        ctx.fillStyle = '#2F4F4F';
-        // Tête (carré pixelisé)
-        ctx.fillRect(this.x + 18, this.y, 16, 16);
-        // Museau
-        ctx.fillRect(this.x + 34, this.y + 4, 6, 8);
-        // Œil (pixel unique)
-        ctx.fillStyle = '#F5F5DC';
-        ctx.fillRect(this.x + 32, this.y + 4, 2, 2);
-        ctx.fillStyle = '#2F4F4F';
-        // Corps (rectangle pixelisé)
-        ctx.fillRect(this.x + 10, this.y + 12, 20, 16);
-        // Ventre
-        ctx.fillRect(this.x + 12, this.y + 20, 16, 8);
-        // Queue (pixelisée)
-        ctx.fillRect(this.x + 2, this.y + 18, 10, 6);
-        ctx.fillRect(this.x, this.y + 20, 6, 4);
-        if (this.ducking) {
-            ctx.fillRect(this.x + 14, this.y + 28, 6, 6);
-            ctx.fillRect(this.x + 24, this.y + 28, 6, 6);
-        }
-        else if (this.grounded) {
-            if (this.runFrame === 0) {
-                ctx.fillRect(this.x + 12, this.y + 28, 6, 8);
-                ctx.fillRect(this.x + 24, this.y + 26, 6, 10);
-            }
-            else {
-                ctx.fillRect(this.x + 12, this.y + 26, 6, 10);
-                ctx.fillRect(this.x + 24, this.y + 28, 6, 8);
-            }
-        }
-        else {
-            ctx.fillRect(this.x + 12, this.y + 28, 6, 8);
-            ctx.fillRect(this.x + 24, this.y + 24, 6, 6);
-        }
     }
 }
 //# sourceMappingURL=Dino.js.map

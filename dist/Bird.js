@@ -69,31 +69,6 @@ export class Bird {
             const img = this.imageCache[this.wingFrame];
             ctx.drawImage(img, this.x, this.y, this.width, this.height);
         }
-        else {
-            this.drawFallback(ctx);
-        }
-    }
-    drawFallback(ctx) {
-        if (this.birdType === 'ovnie') {
-            ctx.fillStyle = '#999';
-            ctx.beginPath();
-            ctx.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, this.height / 3, 0, 0, Math.PI * 2);
-            ctx.fill();
-            return;
-        }
-        ctx.fillStyle = this.birdType === 'mouche' ? '#2F4F4F' : '#FFD700';
-        // Corps
-        ctx.fillRect(this.x + 15, this.y + 20, 30, 20);
-        // Ailes
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        if (this.wingFrame === 0) {
-            ctx.fillRect(this.x + 5, this.y + 15, 20, 10);
-            ctx.fillRect(this.x + 35, this.y + 15, 20, 10);
-        }
-        else {
-            ctx.fillRect(this.x + 5, this.y + 25, 20, 10);
-            ctx.fillRect(this.x + 35, this.y + 25, 20, 10);
-        }
     }
 }
 //# sourceMappingURL=Bird.js.map

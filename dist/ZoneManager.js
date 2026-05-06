@@ -15,58 +15,49 @@ export class ZoneManager {
         this.initializeZones();
     }
     initializeZones() {
-        // Zone 1: Village calme
+        // Zone 1: Zone Blanche (Village)
         this.zones.push({
             id: 0,
-            name: "Village Calme",
-            backgroundTile: 'assets/map/Backgrounds/tile_0001.png',
-            groundTile: 'assets/map/Tiles/tile_0000.png',
-            houses: [
-                { x: 300, y: 200, width: 128, height: 128, type: 'medium', color: 'beige', roofColor: 'red' },
-                { x: 800, y: 220, width: 64, height: 64, type: 'small', color: 'gray', roofColor: 'grey' }
-            ],
-            distanceToNext: 1500,
-            obstacles: ['ladybug']
+            name: "Zone Blanche",
+            background: {
+                head: ['assets/map/zones/white_head.png'],
+                body: ['assets/map/zones/white_body.png'],
+                foot: [
+                    'assets/map/zones/white_foot1.png',
+                    'assets/map/zones/white_foot2.png',
+                    'assets/map/zones/white_foot3.png',
+                    'assets/map/zones/white_foot4.png'
+                ]
+            },
+            platforms: ['assets/map/plateformes/white_p1.png', 'assets/map/plateformes/white_p2.png', 'assets/map/plateformes/white_p3.png'],
+            obstacles: ['ladybug', 'mouse', 'barrier'],
+            distanceToNext: 1500
         });
-        // Zone 2: Banlieue
+        // Zone 2: Zone Verte (Forêt)
         this.zones.push({
             id: 1,
-            name: "Banlieue",
-            backgroundTile: 'assets/map/Backgrounds/tile_0002.png',
-            groundTile: 'assets/map/Tiles/tile_0001.png',
-            houses: [
-                { x: 200, y: 150, width: 192, height: 192, type: 'large', color: 'dark', roofColor: 'yellow' },
-                { x: 600, y: 200, width: 128, height: 128, type: 'medium', color: 'beige', roofColor: 'red' },
-                { x: 1000, y: 220, width: 64, height: 64, type: 'small', color: 'gray', roofColor: 'grey' }
-            ],
-            distanceToNext: 2000,
-            obstacles: ['ladybug', 'souris', 'falling', 'zombie']
+            name: "Zone Verte",
+            background: {
+                head: ['assets/map/zones/green_head.png'],
+                body: ['assets/map/zones/green_body.png'],
+                foot: ['assets/map/zones/green_foot1.png', 'assets/map/zones/green_foot2.png']
+            },
+            platforms: ['assets/map/plateformes/green_p1.png', 'assets/map/plateformes/green_p2.png', 'assets/map/plateformes/green_p3.png'],
+            obstacles: ['ladybug', 'souris', 'falling', 'zombie', 'barrier', 'block'],
+            distanceToNext: 2000
         });
-        // Zone 3: Zone industrielle
+        // Zone 3: Zone Orange (Désert)
         this.zones.push({
             id: 2,
-            name: "Zone Industrielle",
-            backgroundTile: 'assets/map/Backgrounds/tile_0003.png',
-            groundTile: 'assets/map/Tiles/tile_0002.png',
-            houses: [
-                { x: 300, y: 100, width: 256, height: 256, type: 'large', color: 'dark', roofColor: 'grey' },
-                { x: 800, y: 100, width: 256, height: 256, type: 'large', color: 'gray', roofColor: 'grey' }
-            ],
-            distanceToNext: 2500,
-            obstacles: ['ladybug', 'souris', 'falling', 'zombie', 'truck', 'sedan']
-        });
-        // Zone 4: Centre-ville
-        this.zones.push({
-            id: 3,
-            name: "Centre-ville",
-            backgroundTile: 'assets/map/Backgrounds/tile_0005.png',
-            groundTile: 'assets/map/Tiles/tile_0004.png',
-            houses: [
-                { x: 100, y: 50, width: 320, height: 320, type: 'large', color: 'beige', roofColor: 'red' },
-                { x: 600, y: 50, width: 320, height: 320, type: 'large', color: 'dark', roofColor: 'yellow' }
-            ],
-            distanceToNext: 3000,
-            obstacles: ['souris', 'falling', 'zombie', 'police', 'taxi', 'sedan']
+            name: "Zone Orange",
+            background: {
+                head: ['assets/map/zones/orange_head.png'],
+                body: ['assets/map/zones/orange_body.png'],
+                foot: ['assets/map/zones/orange_foot1.png', 'assets/map/zones/orange_foot2.png']
+            },
+            platforms: ['assets/map/plateformes/orange_p1.png', 'assets/map/plateformes/orange_p2.png', 'assets/map/plateformes/orange_p3.png'],
+            obstacles: ['ladybug', 'souris', 'falling', 'zombie', 'truck', 'sedan', 'barrier', 'block', 'bus'],
+            distanceToNext: 2500
         });
     }
     getCurrentZone() {

@@ -87,9 +87,6 @@ export class FallingEnemy implements GameObject {
             ctx.imageSmoothingEnabled = false;
             ctx.drawImage(this.image, Math.floor(this.x), Math.floor(this.y), this.width, this.height);
             ctx.imageSmoothingEnabled = true;
-        } else {
-            ctx.fillStyle = '#666';
-            ctx.fillRect(this.x, this.y, this.width, this.height);
         }
     }
 }

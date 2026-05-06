@@ -14,7 +14,7 @@ export class Enemy {
     jumpTimer = 0;
     JUMP_DURATION = 24; // ~0.4s at 60fps
     initialY;
-    constructor(x, y, type = 'frog') {
+    constructor(x, y, type = 'ladybug') {
         this.x = x;
         this.y = y;
         this.initialY = y;
@@ -23,11 +23,7 @@ export class Enemy {
     }
     async loadSprites() {
         try {
-            if (this.enemyType === 'frog') {
-                this.sprites.walk = ['frog_jump'];
-                this.sprites.idle = ['frog_idle'];
-            }
-            else if (this.enemyType === 'ladybug') {
+            if (this.enemyType === 'ladybug') {
                 this.sprites.walk = ['ladybug_walk_a', 'ladybug_walk_b'];
                 this.sprites.idle = ['ladybug_idle'];
             }
@@ -39,11 +35,12 @@ export class Enemy {
                 this.sprites.walk = ['zombie_walk1', 'zombie_walk2'];
                 this.sprites.idle = ['zombie_idle'];
             }
-            const spritePaths = [];
-            if (this.enemyType === 'frog') {
-                spritePaths.push('assets/enemies/sol/frog/frog_idle.png', 'assets/enemies/sol/frog/frog_jump.png');
+            else if (this.enemyType === 'cars' || this.enemyType === 'ufo') {
+                this.sprites.walk = ['default'];
+                this.sprites.idle = ['default'];
             }
-            else if (this.enemyType === 'ladybug') {
+            const spritePaths = [];
+            if (this.enemyType === 'ladybug') {
                 spritePaths.push('assets/enemies/sol/ladybug/ladybug_idle.png', 'assets/enemies/sol/ladybug/ladybug_walk_a.png', 'assets/enemies/sol/ladybug/ladybug_walk_b.png');
             }
             else if (this.enemyType === 'souris') {
@@ -59,7 +56,6 @@ export class Enemy {
                     img.onload = resolve;
                     img.onerror = resolve;
                 });
-                const key = path.split('/').pop()?.replace('.png', '') || '';
                 this.imageCache.set(path, img);
             }
             this.imagesLoaded = true;
@@ -70,26 +66,6 @@ export class Enemy {
     }
     update(speed) {
         this.x -= speed;
-        if (this.enemyType === 'frog') {
-            if (!this.isJumping && Math.random() < 0.01) {
-                this.isJumping = true;
-                this.jumpTimer = 0;
-            }
-            if (this.isJumping) {
-                this.jumpTimer++;
-                const progress = this.jumpTimer / this.JUMP_DURATION;
-                if (progress <= 1) {
-                    const jumpHeight = Math.sin(progress * Math.PI) * 70;
-                    this.y = this.initialY - jumpHeight;
-                    this.currentAnimation = 'walk';
-                }
-                else {
-                    this.isJumping = false;
-                    this.y = this.initialY;
-                    this.currentAnimation = 'idle';
-                }
-            }
-        }
         if (this.imagesLoaded) {
             this.animationTimer++;
             const animSpeed = this.isJumping ? 4 : 12;
@@ -103,20 +79,21 @@ export class Enemy {
         }
     }
     draw(ctx) {
-        if (!this.imagesLoaded || !this.sprites[this.currentAnimation]) {
-            this.drawFallback(ctx);
+        if (!this.imagesLoaded && !['cars', 'ufo'].includes(this.enemyType)) {
             return;
         }
         const currentSprites = this.sprites[this.currentAnimation];
-        if (currentSprites && currentSprites[this.animationFrame]) {
+        if (currentSprites && (currentSprites[this.animationFrame] || ['cars', 'ufo'].includes(this.enemyType))) {
             const spriteName = currentSprites[this.animationFrame];
             let imgPath = `assets/enemies/sol/${this.enemyType}/${spriteName}.png`;
             if (this.enemyType === 'zombie') {
                 imgPath = `assets/enemies/sol/Zombie/Poses/${spriteName}.png`;
             }
-            else if (this.enemyType === this.enemyType && this.enemyType === 'cars') {
-                // Hack pour les voitures : le spriteName est déjà le nom du fichier
+            else if (this.enemyType === 'cars') {
                 imgPath = `assets/enemies/sol/Cars/${spriteName}.png`;
+            }
+            else if (this.enemyType === 'ufo') {
+                imgPath = `assets/enemies/airs/ovnie/${spriteName}.png`;
             }
             let img = this.imageCache.get(imgPath);
             if (!img) {
@@ -129,29 +106,6 @@ export class Enemy {
                 ctx.drawImage(img, Math.floor(this.x), Math.floor(this.y), this.width, this.height);
                 ctx.imageSmoothingEnabled = true;
             }
-            else {
-                this.drawFallback(ctx);
-            }
-            return;
-        }
-        this.drawFallback(ctx);
-    }
-    drawFallback(ctx) {
-        if (this.enemyType === 'frog') {
-            ctx.fillStyle = '#4CAF50';
-            ctx.fillRect(this.x + 10, this.y + 10, 40, 30);
-        }
-        else if (this.enemyType === 'ladybug') {
-            ctx.fillStyle = '#F44336';
-            ctx.fillRect(this.x + 15, this.y + 15, 30, 30);
-        }
-        else if (this.enemyType === 'zombie') {
-            ctx.fillStyle = '#7B904B'; // Vert zombie
-            ctx.fillRect(this.x + 10, this.y, 40, 60);
-        }
-        else {
-            ctx.fillStyle = '#795548';
-            ctx.fillRect(this.x + 10, this.y + 20, 40, 20);
         }
     }
 }
