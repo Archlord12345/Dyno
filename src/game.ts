@@ -235,52 +235,65 @@ class Game {
     }
 
     private spawnObstacle(): void {
-        const availableObstacles = this.zoneManager.getAvailableObstacles();
-        const obstacleType = availableObstacles[Math.floor(Math.random() * availableObstacles.length)];
-        const x = this.canvas.width + 100; 
+        const x = this.canvas.width + 200; 
         
-        if (obstacleType === 'frog') {
-            const enemy = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'frog');
-            enemy.width = 50 * this.scaleFactor;
-            enemy.height = 40 * this.scaleFactor;
-            this.obstacles.push(enemy);
-        } else if (obstacleType === 'ladybug') {
-            const enemy = new Enemy(x, this.groundY - 45 * this.scaleFactor, 'ladybug');
-            enemy.width = 45 * this.scaleFactor;
-            enemy.height = 45 * this.scaleFactor;
-            this.obstacles.push(enemy);
-        } else if (obstacleType === 'souris') {
-            const enemy = new Enemy(x, this.groundY - 35 * this.scaleFactor, 'souris');
-            enemy.width = 50 * this.scaleFactor;
-            enemy.height = 30 * this.scaleFactor;
-            this.obstacles.push(enemy);
-        } else if (obstacleType === 'falling') {
-            const enemy = new FallingEnemy(x, -100, this.groundY);
-            enemy.width = 60 * this.scaleFactor;
-            enemy.height = 60 * this.scaleFactor;
-            this.obstacles.push(enemy);
-        } else if (obstacleType === 'zombie') {
-            const enemy = new Enemy(x, this.groundY - 80 * this.scaleFactor, 'zombie');
-            enemy.width = 60 * this.scaleFactor;
-            enemy.height = 80 * this.scaleFactor;
-            this.obstacles.push(enemy);
+        // Séparation minimale entre TOUS les obstacles
+        if (this.obstacles.length > 0) {
+            const lastObstacle = this.obstacles[this.obstacles.length - 1];
+            // La distance minimale augmente avec la vitesse pour laisser le temps de réagir
+            const minDistance = (200 + this.gameSpeed * 12) * this.scaleFactor;
+            if (x - (lastObstacle.x + lastObstacle.width) < minDistance) {
+                return; // Trop proche, on attend le prochain cycle
+            }
         }
+
+        const availableObstacles = this.zoneManager.getAvailableObstacles();
         
-        // Ajouter des oiseaux occasionnellement dans toutes les zones
-        if (Math.random() < 0.15) {
+        // Probabilité d'apparition : 25% oiseau, 75% ennemi au sol
+        if (Math.random() < 0.25) {
             const height = Math.random();
             let y: number;
+            // Trois hauteurs différentes pour les oiseaux
             if (height < 0.33) {
-                y = this.groundY - 140 * this.scaleFactor; 
+                y = this.groundY - 140 * this.scaleFactor; // Haut (sautable ou passer dessous)
             } else if (height < 0.66) {
-                y = this.groundY - 90 * this.scaleFactor; 
+                y = this.groundY - 90 * this.scaleFactor;  // Milieu (doit s'accroupir)
             } else {
-                y = this.groundY - 50 * this.scaleFactor; 
+                y = this.groundY - 50 * this.scaleFactor;  // Bas (doit sauter)
             }
             const bird = new Bird(x, y);
             bird.width = 35 * this.scaleFactor;
             bird.height = 30 * this.scaleFactor;
             this.obstacles.push(bird);
+        } else {
+            const obstacleType = availableObstacles[Math.floor(Math.random() * availableObstacles.length)];
+            
+            if (obstacleType === 'frog') {
+                const enemy = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'frog');
+                enemy.width = 50 * this.scaleFactor;
+                enemy.height = 40 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            } else if (obstacleType === 'ladybug') {
+                const enemy = new Enemy(x, this.groundY - 45 * this.scaleFactor, 'ladybug');
+                enemy.width = 45 * this.scaleFactor;
+                enemy.height = 45 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            } else if (obstacleType === 'souris') {
+                const enemy = new Enemy(x, this.groundY - 35 * this.scaleFactor, 'souris');
+                enemy.width = 50 * this.scaleFactor;
+                enemy.height = 30 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            } else if (obstacleType === 'falling') {
+                const enemy = new FallingEnemy(x, -100, this.groundY);
+                enemy.width = 60 * this.scaleFactor;
+                enemy.height = 60 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            } else if (obstacleType === 'zombie') {
+                const enemy = new Enemy(x, this.groundY - 80 * this.scaleFactor, 'zombie');
+                enemy.width = 60 * this.scaleFactor;
+                enemy.height = 80 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            }
         }
     }
 
