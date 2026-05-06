@@ -255,6 +255,7 @@ export class Game {
             this.dino.update();
             this.background.update(this.gameSpeed);
             this.ground.update(this.gameSpeed);
+            this.updateWeatherEffects();
         }
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -267,11 +268,81 @@ export class Game {
         }
 
         this.drawUI();
-        this.drawWeather();
+        this.drawWeatherInfo();
+        this.drawWeatherEffects();
         
         if (this.isPaused) this.drawPauseScreen();
 
         requestAnimationFrame(() => this.gameLoop());
+    }
+
+    private updateWeatherEffects(): void {
+        const weather = this.weatherManager.getWeatherData();
+        if (!weather) return;
+
+        // Création de particules selon le code météo
+        const code = weather.weatherCode;
+        const isRaining = [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code);
+        const isSnowing = [71, 73, 75, 77, 85, 86].includes(code);
+        const isStorming = [95, 96, 99].includes(code);
+
+        if (isRaining || isSnowing || isStorming) {
+            if (this.particles.length < 100) {
+                this.particles.push({
+                    x: Math.random() * this.canvas.width,
+                    y: -10,
+                    speed: (isRaining || isStorming ? 10 : 2) + Math.random() * 5,
+                    length: isRaining || isStorming ? 15 : 5
+                });
+            }
+        }
+
+        this.particles.forEach(p => {
+            p.y += p.speed;
+            if (p.y > this.canvas.height) {
+                p.y = -10;
+                p.x = Math.random() * this.canvas.width;
+            }
+        });
+    }
+
+    private drawWeatherEffects(): void {
+        const weather = this.weatherManager.getWeatherData();
+        if (!weather) return;
+
+        const code = weather.weatherCode;
+        const isRaining = [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code);
+        const isSnowing = [71, 73, 75, 77, 85, 86].includes(code);
+        const isStorming = [95, 96, 99].includes(code);
+        const isFoggy = [45, 48].includes(code);
+
+        // Effet de brouillard
+        if (isFoggy) {
+            this.ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+
+        // Effet de nuit
+        if (this.weatherManager.isNight) {
+            this.ctx.fillStyle = 'rgba(26, 26, 46, 0.4)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+
+        // Dessin des particules
+        this.ctx.strokeStyle = isSnowing ? '#FFF' : '#AACCFF';
+        this.ctx.lineWidth = isSnowing ? 2 : 1;
+        this.particles.forEach(p => {
+            this.ctx.beginPath();
+            this.ctx.moveTo(p.x, p.y);
+            this.ctx.lineTo(p.x - (isRaining ? 2 : 0), p.y + p.length);
+            this.ctx.stroke();
+        });
+
+        // Flash d'orage
+        if (isStorming && Math.random() < 0.01) {
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
     }
 
     private drawUI(): void {
@@ -294,7 +365,7 @@ export class Game {
         }
     }
 
-    private drawWeather(): void {
+    private drawWeatherInfo(): void {
         const weather = this.weatherManager.getWeatherData();
         if (!weather) return;
 

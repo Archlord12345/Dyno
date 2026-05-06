@@ -138,7 +138,7 @@ export class WeatherManager {
     private weatherData: WeatherData | null = null;
     private lastUpdate = 0;
     private readonly UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes
-    private isNight = false;
+    public isNight = false;
     private manualWeatherIndex = -1;
     private manualTimeOverride = false;
     private readonly weatherCodes = [0, 3, 45, 61, 71, 95]; // Clear, Cloudy, Fog, Rain, Snow, Thunderstorm
