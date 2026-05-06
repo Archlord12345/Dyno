@@ -48,10 +48,8 @@ export class Background {
         const bodyImg = bodyPath ? this.tileImages.get(bodyPath) : undefined;
         const startX = -(this.offsetX * bgSpeed) % tileSize;
         for (let x = startX - tileSize; x < canvasWidth + tileSize; x += tileSize) {
-            // Dessiner la tête (ciel)
             if (headImg)
                 ctx.drawImage(headImg, x, 0, tileSize, tileSize);
-            // Dessiner le corps (remplissage)
             if (bodyImg) {
                 for (let y = tileSize; y < canvasHeight - tileSize; y += tileSize) {
                     ctx.drawImage(bodyImg, x, y, tileSize, tileSize);
@@ -68,17 +66,19 @@ export class Background {
         const currentZone = this.zoneManager.getCurrentZone();
         const tileSize = 64;
         const footTiles = currentZone.background.foot;
-        const bgSpeed = 0.8; // Un peu plus rapide pour le parallaxe du sol
+        const bgSpeed = 0.7;
         ctx.imageSmoothingEnabled = false;
         const patternWidth = tileSize * footTiles.length;
         const startX = -(this.offsetX * bgSpeed) % patternWidth;
+        const groundY = canvasHeight - 64;
         for (let x = startX - patternWidth; x < canvasWidth + patternWidth; x += tileSize) {
             const index = Math.floor(Math.abs((x - startX) / tileSize)) % footTiles.length;
             const footPath = footTiles[index];
             const img = footPath ? this.tileImages.get(footPath) : undefined;
             if (img) {
-                // On dessine le pied AU DESSUS du sol (groundY)
-                ctx.drawImage(img, x, canvasHeight - tileSize, tileSize, tileSize);
+                // On dessine le pied (herbe/décor) juste AU DESSUS du niveau du sol
+                // pour qu'il soit visible derrière le joueur
+                ctx.drawImage(img, x, groundY - 32, tileSize, tileSize);
             }
         }
         ctx.imageSmoothingEnabled = true;

@@ -308,9 +308,14 @@ export class Game {
             this.updateWeatherEffects();
         }
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // Ordre de rendu corrigé :
+        // 1. Fond (Ciel + Corps)
         this.background.draw(this.ctx);
+        // 2. Décor du Footer (Herbes en arrière-plan)
+        this.background.drawFoot(this.ctx);
+        // 3. Sol physique (Sol SVG)
         this.ground.draw(this.ctx);
-        this.background.drawFoot(this.ctx); // On dessine les herbes au dessus du sol
+        // 4. Joueur
         this.dino.draw(this.ctx);
         for (const obs of this.obstacles) {
             obs.draw(this.ctx);
