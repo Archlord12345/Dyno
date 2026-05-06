@@ -240,25 +240,27 @@ class Game {
     private spawnObstacle(): void {
         const availableObstacles = this.zoneManager.getAvailableObstacles();
         const obstacleType = availableObstacles[Math.floor(Math.random() * availableObstacles.length)];
-        const x = this.canvasWidth - 100; // Plus d'espace pour l'apparition
+        const x = this.canvas.width + 100; 
         
         if (obstacleType === 'frog') {
-            // Grenouille - taille et position optimisées
             const enemy = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'frog');
             enemy.width = 50 * this.scaleFactor;
             enemy.height = 40 * this.scaleFactor;
             this.obstacles.push(enemy);
         } else if (obstacleType === 'ladybug') {
-            // Coccinelle - taille et position optimisées
             const enemy = new Enemy(x, this.groundY - 45 * this.scaleFactor, 'ladybug');
             enemy.width = 45 * this.scaleFactor;
             enemy.height = 45 * this.scaleFactor;
             this.obstacles.push(enemy);
         } else if (obstacleType === 'souris') {
-            // Souris - taille ajustée
             const enemy = new Enemy(x, this.groundY - 35 * this.scaleFactor, 'souris');
             enemy.width = 50 * this.scaleFactor;
             enemy.height = 30 * this.scaleFactor;
+            this.obstacles.push(enemy);
+        } else if (obstacleType === 'falling') {
+            const enemy = new FallingEnemy(x, -100, this.groundY);
+            enemy.width = 60 * this.scaleFactor;
+            enemy.height = 60 * this.scaleFactor;
             this.obstacles.push(enemy);
         }
         
@@ -267,11 +269,11 @@ class Game {
             const height = Math.random();
             let y: number;
             if (height < 0.33) {
-                y = this.groundY - 140 * this.scaleFactor; // Très haut
+                y = this.groundY - 140 * this.scaleFactor; 
             } else if (height < 0.66) {
-                y = this.groundY - 90 * this.scaleFactor; // Milieu
+                y = this.groundY - 90 * this.scaleFactor; 
             } else {
-                y = this.groundY - 50 * this.scaleFactor; // Bas (sautable)
+                y = this.groundY - 50 * this.scaleFactor; 
             }
             const bird = new Bird(x, y);
             bird.width = 35 * this.scaleFactor;
