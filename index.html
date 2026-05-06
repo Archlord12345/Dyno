@@ -177,6 +177,40 @@
             font-weight: bold;
             color: #333;
         }
+
+        .game-modifiers {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .modifier-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #2F4F4F;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .modifier-btn:hover {
+            transform: scale(1.1);
+            background: #fff;
+        }
+
+        .modifier-btn:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
@@ -192,6 +226,10 @@
     <div id="game-container">
         <canvas id="game"></canvas>
         <div id="score">Score: 0</div>
+        <div class="game-modifiers">
+            <button id="toggle-time" class="modifier-btn" title="Cycle Jour/Nuit">🌙</button>
+            <button id="cycle-weather" class="modifier-btn" title="Changer Météo">☁️</button>
+        </div>
         <div id="game-over">
             <h2>Game Over!</h2>
             <p>Score: <span id="final-score">0</span></p>

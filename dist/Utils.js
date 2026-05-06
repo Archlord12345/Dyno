@@ -88,7 +88,12 @@ export class WeatherManager {
     weatherData = null;
     lastUpdate = 0;
     UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+    isNight = false;
+    manualWeatherIndex = -1;
+    weatherCodes = [0, 3, 45, 61, 71, 95]; // Clear, Cloudy, Fog, Rain, Snow, Thunderstorm
     async fetchWeather() {
+        if (this.manualWeatherIndex !== -1)
+            return; // Don't fetch if manually overridden
         const now = Date.now();
         if (now - this.lastUpdate < this.UPDATE_INTERVAL && this.weatherData) {
             return;
@@ -113,6 +118,19 @@ export class WeatherManager {
                 icon: '☀️'
             };
         }
+    }
+    toggleTime() {
+        this.isNight = !this.isNight;
+    }
+    cycleWeather() {
+        this.manualWeatherIndex = (this.manualWeatherIndex + 1) % this.weatherCodes.length;
+        const code = this.weatherCodes[this.manualWeatherIndex];
+        this.weatherData = {
+            temperature: this.weatherData?.temperature || 20,
+            weatherCode: code,
+            description: this.getWeatherDescription(code),
+            icon: this.getWeatherIcon(code)
+        };
     }
     getWeatherDescription(code) {
         const descriptions = {
@@ -159,6 +177,8 @@ export class WeatherManager {
         return this.weatherData;
     }
     getBackgroundColor() {
+        if (this.isNight)
+            return '#1a1a2e'; // Deep midnight blue for night
         if (!this.weatherData)
             return '#FFFACD';
         const code = this.weatherData.weatherCode;
@@ -175,6 +195,9 @@ export class WeatherManager {
         if (code <= 99)
             return '#8B4513'; // Orage - marron terreux
         return '#FFFACD';
+    }
+    getIsNight() {
+        return this.isNight;
     }
 }
 //# sourceMappingURL=Utils.js.map

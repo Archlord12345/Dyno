@@ -4,6 +4,7 @@ export class ZoneManager {
     currentZone = 0;
     totalDistance = 0;
     zoneChangeDistance = 2000; // Distance avant de changer de zone
+    nextZoneAtScore = 100; // Score auquel la prochaine zone sera déclenchée
     static getInstance() {
         if (!ZoneManager.instance) {
             ZoneManager.instance = new ZoneManager();
@@ -39,7 +40,7 @@ export class ZoneManager {
                 { x: 1000, y: 220, width: 64, height: 64, type: 'small', color: 'gray', roofColor: 'grey' }
             ],
             distanceToNext: 2000,
-            obstacles: ['frog', 'ladybug', 'souris', 'falling']
+            obstacles: ['frog', 'ladybug', 'souris', 'falling', 'zombie']
         });
         // Zone 3: Zone industrielle
         this.zones.push({
@@ -52,7 +53,7 @@ export class ZoneManager {
                 { x: 800, y: 100, width: 256, height: 256, type: 'large', color: 'gray', roofColor: 'grey' }
             ],
             distanceToNext: 2500,
-            obstacles: ['ladybug', 'souris', 'falling']
+            obstacles: ['ladybug', 'souris', 'falling', 'zombie', 'truck', 'sedan']
         });
         // Zone 4: Centre-ville
         this.zones.push({
@@ -65,7 +66,7 @@ export class ZoneManager {
                 { x: 600, y: 50, width: 320, height: 320, type: 'large', color: 'dark', roofColor: 'yellow' }
             ],
             distanceToNext: 3000,
-            obstacles: ['frog', 'souris', 'falling']
+            obstacles: ['frog', 'souris', 'falling', 'zombie', 'police', 'taxi', 'sedan']
         });
     }
     getCurrentZone() {
@@ -79,11 +80,18 @@ export class ZoneManager {
     }
     updateDistance(distance) {
         this.totalDistance += distance;
-        // Vérifier si on doit changer de zone
-        const currentZone = this.getCurrentZone();
-        if (this.totalDistance >= currentZone.distanceToNext) {
+    }
+    /**
+     * Vérifie si le score actuel déclenche un changement de zone (tous les 100 points).
+     * @returns true si un changement de zone a eu lieu
+     */
+    updateScore(score) {
+        if (score >= this.nextZoneAtScore) {
             this.nextZone();
+            this.nextZoneAtScore += 100;
+            return true;
         }
+        return false;
     }
     nextZone() {
         if (this.currentZone < this.zones.length - 1) {
@@ -105,6 +113,7 @@ export class ZoneManager {
     reset() {
         this.currentZone = 0;
         this.totalDistance = 0;
+        this.nextZoneAtScore = 100;
     }
     getAvailableObstacles() {
         return this.getCurrentZone().obstacles;

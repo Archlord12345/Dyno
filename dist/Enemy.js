@@ -35,6 +35,10 @@ export class Enemy {
                 this.sprites.walk = ['mouse_walk_a', 'mouse_walk_b'];
                 this.sprites.idle = ['souris_idle'];
             }
+            else if (this.enemyType === 'zombie') {
+                this.sprites.walk = ['zombie_walk1', 'zombie_walk2'];
+                this.sprites.idle = ['zombie_idle'];
+            }
             const spritePaths = [];
             if (this.enemyType === 'frog') {
                 spritePaths.push('assets/enemies/sol/frog/frog_idle.png', 'assets/enemies/sol/frog/frog_jump.png');
@@ -44,6 +48,9 @@ export class Enemy {
             }
             else if (this.enemyType === 'souris') {
                 spritePaths.push('assets/enemies/sol/souris/souris_idle.png', 'assets/enemies/sol/souris/mouse_walk_a.png', 'assets/enemies/sol/souris/mouse_walk_b.png');
+            }
+            else if (this.enemyType === 'zombie') {
+                spritePaths.push('assets/enemies/sol/Zombie/Poses/zombie_idle.png', 'assets/enemies/sol/Zombie/Poses/zombie_walk1.png', 'assets/enemies/sol/Zombie/Poses/zombie_walk2.png');
             }
             for (const path of spritePaths) {
                 const img = new Image();
@@ -103,7 +110,14 @@ export class Enemy {
         const currentSprites = this.sprites[this.currentAnimation];
         if (currentSprites && currentSprites[this.animationFrame]) {
             const spriteName = currentSprites[this.animationFrame];
-            const imgPath = `assets/enemies/sol/${this.enemyType}/${spriteName}.png`;
+            let imgPath = `assets/enemies/sol/${this.enemyType}/${spriteName}.png`;
+            if (this.enemyType === 'zombie') {
+                imgPath = `assets/enemies/sol/Zombie/Poses/${spriteName}.png`;
+            }
+            else if (this.enemyType === this.enemyType && this.enemyType === 'cars') {
+                // Hack pour les voitures : le spriteName est déjà le nom du fichier
+                imgPath = `assets/enemies/sol/Cars/${spriteName}.png`;
+            }
             let img = this.imageCache.get(imgPath);
             if (!img) {
                 img = new Image();
@@ -130,6 +144,10 @@ export class Enemy {
         else if (this.enemyType === 'ladybug') {
             ctx.fillStyle = '#F44336';
             ctx.fillRect(this.x + 15, this.y + 15, 30, 30);
+        }
+        else if (this.enemyType === 'zombie') {
+            ctx.fillStyle = '#7B904B'; // Vert zombie
+            ctx.fillRect(this.x + 10, this.y, 40, 60);
         }
         else {
             ctx.fillStyle = '#795548';

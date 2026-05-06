@@ -29,28 +29,12 @@ export class AvatarManager {
                 }
             });
         });
-        // Characters Double (versions plus grandes)
-        colors.forEach(color => {
-            this.avatars.push({
-                id: `character_${color}_double`,
-                name: `Personnage ${color.charAt(0).toUpperCase() + color.slice(1)} (Double)`,
-                category: 'character',
-                path: `assets/personnages/Double`,
-                sprites: {
-                    idle: `character_${color}_idle.png`,
-                    walk: [`character_${color}_walk_a.png`, `character_${color}_walk_b.png`],
-                    jump: `character_${color}_jump.png`,
-                    hurt: `character_${color}_hit.png`,
-                    duck: `character_${color}_duck.png`
-                }
-            });
-        });
         // Player
         this.avatars.push({
             id: 'player',
             name: 'Joueur',
             category: 'adventurer',
-            path: 'assets/personnages/Player/Poses',
+            path: 'assets/personnages/Player',
             sprites: {
                 idle: 'player_idle.png',
                 walk: ['player_walk1.png', 'player_walk2.png'],
@@ -64,7 +48,7 @@ export class AvatarManager {
             id: 'adventurer',
             name: 'Aventurier',
             category: 'adventurer',
-            path: 'assets/personnages/Adventurer/Poses',
+            path: 'assets/personnages/Adventurer',
             sprites: {
                 idle: 'adventurer_idle.png',
                 walk: ['adventurer_walk1.png', 'adventurer_walk2.png'],
@@ -78,7 +62,7 @@ export class AvatarManager {
             id: 'female',
             name: 'Femme',
             category: 'female',
-            path: 'assets/personnages/Female/Poses',
+            path: 'assets/personnages/Female',
             sprites: {
                 idle: 'female_idle.png',
                 walk: ['female_walk1.png', 'female_walk2.png'],
@@ -92,7 +76,7 @@ export class AvatarManager {
             id: 'soldier',
             name: 'Soldat',
             category: 'soldier',
-            path: 'assets/personnages/Soldier/Poses',
+            path: 'assets/personnages/Soldier',
             sprites: {
                 idle: 'soldier_idle.png',
                 walk: ['soldier_walk1.png', 'soldier_walk2.png'],

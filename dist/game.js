@@ -93,20 +93,7 @@ class Game {
         this.dino.jumpForce = -16 * this.scaleFactor;
         this.dino.gravity = 0.9;
         this.ground.y = this.groundY;
-        if (this.isPlaying) {
-            this.totalDistance += this.gameSpeed;
-            this.score += this.gameSpeed / 60;
-            const currentZone = this.zoneManager.getCurrentZone();
-            this.scoreElement.textContent = `Score: ${Math.floor(this.score)} | Zone: ${currentZone.name}`;
-            this.zoneManager.updateDistance(this.gameSpeed);
-            if (this.totalDistance - this.lastZoneCheck >= currentZone.distanceToNext) {
-                this.lastZoneCheck = this.totalDistance;
-                this.background.updateZone();
-                this.ground.reset(); // On reset le sol pour la nouvelle zone
-                this.weatherManager.fetchWeather();
-                console.log(`Nouvelle zone: ${this.zoneManager.getCurrentZone().name}`);
-            }
-        }
+        // Les positions sont mises à jour, la logique de zone est gérée dans gameLoop
     }
     setupInputs() {
         document.addEventListener('keydown', (e) => {
@@ -120,7 +107,7 @@ class Game {
                     this.dino.jump();
                     this.audioManager.playJump();
                 }
-                else {
+                else if (!this.isPlaying && !this.isGameOver) {
                     this.start();
                 }
             }
@@ -141,6 +128,25 @@ class Game {
                 this.audioManager.toggleMute();
             }
         });
+        // Gestion des boutons de modification
+        const toggleTimeBtn = document.getElementById('toggle-time');
+        const cycleWeatherBtn = document.getElementById('cycle-weather');
+        if (toggleTimeBtn) {
+            toggleTimeBtn.addEventListener('click', () => {
+                this.weatherManager.toggleTime();
+                const isNight = this.weatherManager.getIsNight();
+                toggleTimeBtn.textContent = isNight ? '☀️' : '🌙';
+                // Forcer la mise à jour immédiate de la couleur de fond
+                document.body.style.backgroundColor = this.weatherManager.getBackgroundColor();
+            });
+        }
+        if (cycleWeatherBtn) {
+            cycleWeatherBtn.addEventListener('click', () => {
+                this.weatherManager.cycleWeather();
+                // Forcer la mise à jour immédiate
+                document.body.style.backgroundColor = this.weatherManager.getBackgroundColor();
+            });
+        }
         document.addEventListener('keyup', (e) => {
             this.keys[e.code] = false;
             if (e.code === 'ArrowDown') {
@@ -174,11 +180,13 @@ class Game {
         this.background.updateZone();
         this.dino.reset();
         this.ground.reset();
+        this.updateGamePositions(); // S'assurer que les positions sont correctes après le reset
         this.gameOverElement.style.display = 'none';
         this.audioManager.playBackgroundMusic();
     }
     updateScore() {
-        this.scoreElement.textContent = Math.floor(this.score).toString().padStart(5, '0');
+        const currentZone = this.zoneManager.getCurrentZone();
+        this.scoreElement.textContent = `Score: ${Math.floor(this.score).toString().padStart(5, '0')} | Zone: ${currentZone.name}`;
     }
     loadHighScore() {
         const saved = localStorage.getItem('dino-highscore');
@@ -204,50 +212,98 @@ class Game {
         this.saveToLeaderboard();
     }
     spawnObstacle() {
+        const x = this.canvas.width + 200;
+        // Séparation minimale entre TOUS les obstacles
+        if (this.obstacles.length > 0) {
+            const lastObstacle = this.obstacles[this.obstacles.length - 1];
+            if (lastObstacle) {
+                // La distance minimale augmente avec la vitesse pour laisser le temps de réagir
+                const minDistance = (200 + this.gameSpeed * 12) * this.scaleFactor;
+                if (x - (lastObstacle.x + lastObstacle.width) < minDistance) {
+                    return; // Trop proche, on attend le prochain cycle
+                }
+            }
+        }
         const availableObstacles = this.zoneManager.getAvailableObstacles();
-        const obstacleType = availableObstacles[Math.floor(Math.random() * availableObstacles.length)];
-        const x = this.canvas.width + 100;
-        if (obstacleType === 'frog') {
-            const enemy = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'frog');
-            enemy.width = 50 * this.scaleFactor;
-            enemy.height = 40 * this.scaleFactor;
-            this.obstacles.push(enemy);
-        }
-        else if (obstacleType === 'ladybug') {
-            const enemy = new Enemy(x, this.groundY - 45 * this.scaleFactor, 'ladybug');
-            enemy.width = 45 * this.scaleFactor;
-            enemy.height = 45 * this.scaleFactor;
-            this.obstacles.push(enemy);
-        }
-        else if (obstacleType === 'souris') {
-            const enemy = new Enemy(x, this.groundY - 35 * this.scaleFactor, 'souris');
-            enemy.width = 50 * this.scaleFactor;
-            enemy.height = 30 * this.scaleFactor;
-            this.obstacles.push(enemy);
-        }
-        else if (obstacleType === 'falling') {
-            const enemy = new FallingEnemy(x, -100, this.groundY);
-            enemy.width = 60 * this.scaleFactor;
-            enemy.height = 60 * this.scaleFactor;
-            this.obstacles.push(enemy);
-        }
-        // Ajouter des oiseaux occasionnellement dans toutes les zones
-        if (Math.random() < 0.15) {
+        const obstacleType = availableObstacles[Math.floor(Math.random() * availableObstacles.length)] || '';
+        if (!obstacleType)
+            return;
+        // Probabilité d'apparition : 25% oiseau, 75% ennemi au sol
+        if (Math.random() < 0.25) {
             const height = Math.random();
             let y;
+            // Trois hauteurs différentes pour les oiseaux
             if (height < 0.33) {
-                y = this.groundY - 140 * this.scaleFactor;
+                y = this.groundY - 140 * this.scaleFactor; // Haut (sautable ou passer dessous)
             }
             else if (height < 0.66) {
-                y = this.groundY - 90 * this.scaleFactor;
+                y = this.groundY - 90 * this.scaleFactor; // Milieu (doit s'accroupir)
             }
             else {
-                y = this.groundY - 50 * this.scaleFactor;
+                y = this.groundY - 50 * this.scaleFactor; // Bas (doit sauter)
             }
             const bird = new Bird(x, y);
             bird.width = 35 * this.scaleFactor;
             bird.height = 30 * this.scaleFactor;
             this.obstacles.push(bird);
+        }
+        else {
+            if (obstacleType === 'frog') {
+                const enemy = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'frog');
+                enemy.width = 50 * this.scaleFactor;
+                enemy.height = 40 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            }
+            else if (obstacleType === 'ladybug') {
+                const enemy = new Enemy(x, this.groundY - 45 * this.scaleFactor, 'ladybug');
+                enemy.width = 45 * this.scaleFactor;
+                enemy.height = 45 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            }
+            else if (obstacleType === 'souris') {
+                const enemy = new Enemy(x, this.groundY - 35 * this.scaleFactor, 'souris');
+                enemy.width = 50 * this.scaleFactor;
+                enemy.height = 30 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            }
+            else if (obstacleType === 'falling') {
+                const enemy = new FallingEnemy(x, -100, this.groundY);
+                enemy.width = 60 * this.scaleFactor;
+                enemy.height = 60 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            }
+            else if (obstacleType === 'zombie') {
+                const enemy = new Enemy(x, this.groundY - 80 * this.scaleFactor, 'zombie');
+                enemy.width = 60 * this.scaleFactor;
+                enemy.height = 80 * this.scaleFactor;
+                this.obstacles.push(enemy);
+            }
+            else if (['sedan', 'police', 'taxi', 'truck'].includes(obstacleType)) {
+                // Utiliser la classe Enemy avec un hack temporaire ou créer une nouvelle classe
+                // Pour faire simple, on utilise Enemy mais on change le chemin d'image
+                const enemy = new Enemy(x, this.groundY - 50 * this.scaleFactor, 'frog'); // On triche sur le type
+                enemy.width = 80 * this.scaleFactor;
+                enemy.height = 50 * this.scaleFactor;
+                // On surcharge le chargement d'image pour les voitures
+                const carImg = new Image();
+                let carPath = 'assets/enemies/sol/Cars/sedan.png';
+                if (obstacleType === 'police')
+                    carPath = 'assets/enemies/sol/Cars/police.png';
+                if (obstacleType === 'taxi')
+                    carPath = 'assets/enemies/sol/Cars/taxi.png';
+                if (obstacleType === 'truck') {
+                    carPath = 'assets/enemies/sol/Cars/truck.png';
+                    enemy.width = 100 * this.scaleFactor;
+                    enemy.height = 60 * this.scaleFactor;
+                    enemy.y = this.groundY - 60 * this.scaleFactor;
+                }
+                carImg.src = carPath;
+                // Utilisation de any pour accéder aux propriétés privées pour ce hack rapide
+                enemy.imageCache.set(carPath, carImg);
+                enemy.sprites.walk = [carPath.split('/').pop()?.replace('.png', '')];
+                enemy.enemyType = 'cars'; // Pour le path dans draw
+                this.obstacles.push(enemy);
+            }
         }
     }
     checkCollision(obj1, obj2) {
@@ -268,9 +324,18 @@ class Game {
     gameLoop() {
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         if (this.isPlaying && !this.isPaused) {
-            // Mise à jour du score
+            // Mise à jour du score et de la distance
             this.score += 0.1;
+            this.totalDistance += this.gameSpeed / 60;
+            this.zoneManager.updateDistance(this.gameSpeed / 60);
             this.updateScore();
+            // Changement de zone tous les 100 points
+            if (this.zoneManager.updateScore(this.score)) {
+                this.background.updateZone();
+                this.ground.reset();
+                this.weatherManager.fetchWeather();
+                console.log(`Nouvelle zone: ${this.zoneManager.getCurrentZone().name}`);
+            }
             // Augmentation progressive de la vitesse
             if (this.score > 0 && Math.floor(this.score) % 100 === 0) {
                 this.gameSpeed = Math.min(6 + Math.floor(this.score / 100) * 0.5, 15) * this.scaleFactor;

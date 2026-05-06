@@ -151,6 +151,28 @@ class Game {
             }
         });
 
+        // Gestion des boutons de modification
+        const toggleTimeBtn = document.getElementById('toggle-time');
+        const cycleWeatherBtn = document.getElementById('cycle-weather');
+
+        if (toggleTimeBtn) {
+            toggleTimeBtn.addEventListener('click', () => {
+                this.weatherManager.toggleTime();
+                const isNight = this.weatherManager.getIsNight();
+                toggleTimeBtn.textContent = isNight ? '☀️' : '🌙';
+                // Forcer la mise à jour immédiate de la couleur de fond
+                document.body.style.backgroundColor = this.weatherManager.getBackgroundColor();
+            });
+        }
+
+        if (cycleWeatherBtn) {
+            cycleWeatherBtn.addEventListener('click', () => {
+                this.weatherManager.cycleWeather();
+                // Forcer la mise à jour immédiate
+                document.body.style.backgroundColor = this.weatherManager.getBackgroundColor();
+            });
+        }
+
         document.addEventListener('keyup', (e) => {
             this.keys[e.code] = false;
             

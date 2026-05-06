@@ -100,8 +100,13 @@ export class WeatherManager {
     private weatherData: WeatherData | null = null;
     private lastUpdate = 0;
     private readonly UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+    private isNight = false;
+    private manualWeatherIndex = -1;
+    private readonly weatherCodes = [0, 3, 45, 61, 71, 95]; // Clear, Cloudy, Fog, Rain, Snow, Thunderstorm
 
     async fetchWeather(): Promise<void> {
+        if (this.manualWeatherIndex !== -1) return; // Don't fetch if manually overridden
+
         const now = Date.now();
         if (now - this.lastUpdate < this.UPDATE_INTERVAL && this.weatherData) {
             return;
@@ -127,6 +132,21 @@ export class WeatherManager {
                 icon: '☀️'
             };
         }
+    }
+
+    toggleTime(): void {
+        this.isNight = !this.isNight;
+    }
+
+    cycleWeather(): void {
+        this.manualWeatherIndex = (this.manualWeatherIndex + 1) % this.weatherCodes.length;
+        const code = this.weatherCodes[this.manualWeatherIndex] as number;
+        this.weatherData = {
+            temperature: this.weatherData?.temperature || 20,
+            weatherCode: code,
+            description: this.getWeatherDescription(code),
+            icon: this.getWeatherIcon(code)
+        };
     }
 
     private getWeatherDescription(code: number): string {
@@ -171,6 +191,8 @@ export class WeatherManager {
     }
 
     getBackgroundColor(): string {
+        if (this.isNight) return '#1a1a2e'; // Deep midnight blue for night
+        
         if (!this.weatherData) return '#FFFACD';
         
         const code = this.weatherData.weatherCode;
@@ -181,5 +203,9 @@ export class WeatherManager {
         if (code <= 75) return '#E8F4F8'; // Neige - bleu très clair
         if (code <= 99) return '#8B4513'; // Orage - marron terreux
         return '#FFFACD';
+    }
+
+    getIsNight(): boolean {
+        return this.isNight;
     }
 }
