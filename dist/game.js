@@ -240,7 +240,7 @@ export class Game {
         }
     }
     checkCollision(obj1, obj2) {
-        const margin = 10 * this.scaleFactor;
+        const margin = 5 * this.scaleFactor; // Marge réduite pour plus de précision
         return (obj1.x + margin < obj2.x + obj2.width - margin &&
             obj1.x + obj1.width - margin > obj2.x + margin &&
             obj1.y + margin < obj2.y + obj2.height - margin &&
@@ -275,22 +275,37 @@ export class Game {
             let onPlatform = false;
             for (let i = 0; i < this.obstacles.length; i++) {
                 const obs = this.obstacles[i];
+                // Détection spécifique pour les plateformes
+                const isPlatform = obs.enemyType === 'platform';
                 if (this.checkCollision(this.dino, obs)) {
-                    if (obs instanceof Enemy && obs.enemyType === 'platform') {
-                        if (this.dino.velocityY > 0 && this.dino.y + this.dino.height < obs.y + 20) {
-                            this.dino.y = obs.y - this.dino.height;
+                    if (isPlatform) {
+                        // Collision par le haut (Atterrissage)
+                        // On vérifie si les pieds du dino sont au dessus de la moitié supérieure de la plateforme
+                        const dinoFeetY = this.dino.y + this.dino.height;
+                        const platformTopY = obs.y;
+                        if (this.dino.velocityY >= 0 && dinoFeetY <= platformTopY + 20 * this.scaleFactor) {
+                            this.dino.y = platformTopY - this.dino.height;
                             this.dino.velocityY = 0;
                             this.dino.grounded = true;
                             onPlatform = true;
                         }
+                        else {
+                            // Collision latérale : on bloque le joueur (il meurt s'il fonce dedans?)
+                            // Pour l'instant on considère que c'est une collision normale qui fait perdre de la vie
+                            this.health -= 1;
+                            this.obstacles.splice(i, 1);
+                            this.audioManager.playCollision();
+                            if (this.health <= 0)
+                                this.gameOver();
+                        }
                     }
                     else {
+                        // Ennemi normal
                         this.health -= 1;
                         this.obstacles.splice(i, 1);
                         this.audioManager.playCollision();
-                        if (this.health <= 0) {
+                        if (this.health <= 0)
                             this.gameOver();
-                        }
                     }
                     break;
                 }
@@ -308,14 +323,9 @@ export class Game {
             this.updateWeatherEffects();
         }
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // Ordre de rendu corrigé :
-        // 1. Fond (Ciel + Corps)
         this.background.draw(this.ctx);
-        // 2. Décor du Footer (Herbes en arrière-plan)
         this.background.drawFoot(this.ctx);
-        // 3. Sol physique (Sol SVG)
         this.ground.draw(this.ctx);
-        // 4. Joueur
         this.dino.draw(this.ctx);
         for (const obs of this.obstacles) {
             obs.draw(this.ctx);
