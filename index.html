@@ -42,19 +42,7 @@
         }
         
         #score {
-            position: absolute;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 28px;
-            color: #2F4F4F;
-            z-index: 10;
-            font-weight: bold;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px 25px;
-            border-radius: 15px;
-            border: 2px solid #2F4F4F;
+            display: none;
         }
         
         #game-over {
@@ -64,13 +52,15 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            z-index: 20;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 50px;
-            border-radius: 25px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-            border: 3px solid #2F4F4F;
-            min-width: 300px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            min-width: 350px;
+            color: white;
         }
         
         #game-over h2 {
@@ -181,32 +171,35 @@
 
         .game-modifiers {
             position: absolute;
-            top: 30px;
-            right: 30px;
+            top: 80px;
+            left: 20px;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 10;
+            gap: 12px;
+            z-index: 100;
         }
 
         .modifier-btn {
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid #2F4F4F;
-            border-radius: 50%;
-            width: 90px;
-            height: 90px;
-            font-size: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px;
+            border-radius: 12px;
             cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+            width: 48px;
+            height: 48px;
         }
 
         .modifier-btn:hover {
-            transform: scale(1.1);
-            background: #fff;
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
 
         .modifier-btn:active {
