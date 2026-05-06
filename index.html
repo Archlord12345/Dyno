@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #FFFACD;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            text-align: center;
+            display: none; /* Caché par défaut */
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        #score {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            color: #2F4F4F;
+            z-index: 10;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 25px;
+            border-radius: 15px;
+            border: 2px solid #2F4F4F;
+        }
+        
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 25px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            border: 3px solid #2F4F4F;
+            min-width: 300px;
+        }
+        
+        #game-over h2 {
+            color: #2F4F4F;
+            margin-bottom: 25px;
+            font-size: 42px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        #game-over p {
+            color: #666;
+            font-size: 20px;
+            margin: 0;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #2F4F4F;
+            font-size: 18px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 30px;
+            border-radius: 15px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            border: 2px solid #2F4F4F;
+            font-weight: 500;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .selection-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .start-btn {
+            background: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .start-btn:hover {
+            background: #3e8e41;
+        }
+        
+        .avatar-option {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .avatar-option:hover {
+            border-color: #4CAF50;
+            transform: scale(1.05);
+        }
+        
+        .avatar-option.selected {
+            border-color: #4CAF50;
+            background: #e8f5e8;
+        }
+        
+        .avatar-preview {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 5px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+        
+        .avatar-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- Écran de sélection d'avatar -->
+    <div id="avatar-selection" class="overlay">
+        <div class="selection-container">
+            <h2>Choisissez votre avatar</h2>
+            <div id="avatar-grid" class="avatar-grid"></div>
+            <button id="start-game" class="start-btn">Commencer le jeu</button>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <canvas id="game"></canvas>
+        <div id="score">Score: 0</div>
+        <div id="game-over">
+            <h2>Game Over!</h2>
+            <p>Score: <span id="final-score">0</span></p>
+            <p>Meilleur score: <span id="best-score">0</span></p>
+            <button onclick="location.reload()">Rejouer</button>
+        </div>
+    </div>
+    <div class="controls">
+        ESPACE ou ↑ = SAUTER | ↓ = S'ACCROUPIR | P = PAUSE | M = MUTE
+    </div>
+    
+    <script type="module">
+        import { AvatarManager } from './dist/AvatarManager.js';
+        
+        let selectedAvatar = 'player';
+        
+        // Initialiser la sélection d'avatar
+        function initAvatarSelection() {
+            const avatarManager = AvatarManager.getInstance();
+            const avatars = avatarManager.getAvatars();
+            const grid = document.getElementById('avatar-grid');
+            
+            // Créer les options d'avatar
+            avatars.forEach(avatar => {
+                const option = document.createElement('div');
+                option.className = 'avatar-option';
+                option.dataset.avatarId = avatar.id;
+                
+                // Icône de prévisualisation selon la catégorie
+                const preview = document.createElement('div');
+                preview.className = 'avatar-preview';
+                preview.textContent = getAvatarIcon(avatar);
+                
+                const name = document.createElement('div');
+                name.className = 'avatar-name';
+                name.textContent = avatar.name;
+                
+                option.appendChild(preview);
+                option.appendChild(name);
+                
+                option.addEventListener('click', () => selectAvatar(avatar.id));
+                
+                grid.appendChild(option);
+            });
+            
+            // Sélectionner l'avatar par défaut
+            selectAvatar(selectedAvatar);
+            
+            // Gérer le bouton de démarrage
+            document.getElementById('start-game').addEventListener('click', startGame);
+        }
+        
+        function getAvatarIcon(avatar) {
+            const icons = {
+                'character': '👤',
+                'adventurer': '🗡️',
+                'female': '👩',
+                'soldier': '⚔️',
+                'robot': '🤖'
+            };
+            return icons[avatar.category] || '👤';
+        }
+        
+        function selectAvatar(avatarId) {
+            // Mettre à jour la sélection visuelle
+            document.querySelectorAll('.avatar-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            const selectedOption = document.querySelector(`[data-avatar-id="${avatarId}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+            
+            selectedAvatar = avatarId;
+            const avatarManager = AvatarManager.getInstance();
+            avatarManager.selectAvatar(avatarId);
+        }
+        
+        function startGame() {
+            // Cacher l'écran de sélection et montrer le jeu
+            document.getElementById('avatar-selection').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            
+            // Charger le jeu
+            import('./dist/game.js').then(module => {
+                // Le jeu va démarrer automatiquement
+            });
+        }
+        
+        // Initialiser quand la page est chargée
+        document.addEventListener('DOMContentLoaded', initAvatarSelection);
+    </script>
+</body>
+</html>
