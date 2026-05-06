@@ -26,7 +26,7 @@ export class ZoneManager {
                 { x: 800, y: 220, width: 64, height: 64, type: 'small', color: 'gray', roofColor: 'grey' }
             ],
             distanceToNext: 1500,
-            obstacles: ['frog', 'ladybug']
+            obstacles: ['ladybug']
         });
         // Zone 2: Banlieue
         this.zones.push({
@@ -40,7 +40,7 @@ export class ZoneManager {
                 { x: 1000, y: 220, width: 64, height: 64, type: 'small', color: 'gray', roofColor: 'grey' }
             ],
             distanceToNext: 2000,
-            obstacles: ['frog', 'ladybug', 'souris', 'falling', 'zombie']
+            obstacles: ['ladybug', 'souris', 'falling', 'zombie']
         });
         // Zone 3: Zone industrielle
         this.zones.push({
@@ -66,7 +66,7 @@ export class ZoneManager {
                 { x: 600, y: 50, width: 320, height: 320, type: 'large', color: 'dark', roofColor: 'yellow' }
             ],
             distanceToNext: 3000,
-            obstacles: ['frog', 'souris', 'falling', 'zombie', 'police', 'taxi', 'sedan']
+            obstacles: ['souris', 'falling', 'zombie', 'police', 'taxi', 'sedan']
         });
     }
     getCurrentZone() {

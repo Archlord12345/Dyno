@@ -485,12 +485,12 @@ class Game {
         }
 
         if (code >= 61 && code <= 65) { // Pluie
-            this.ctx.strokeStyle = 'rgba(174, 194, 224, 0.6)';
-            this.ctx.lineWidth = 1;
+            this.ctx.strokeStyle = 'rgba(174, 194, 224, 0.8)';
+            this.ctx.lineWidth = 3; // Plus épais (était 1)
             this.particles.forEach(p => {
                 this.ctx.beginPath();
                 this.ctx.moveTo(p.x, p.y);
-                this.ctx.lineTo(p.x, p.y + p.length);
+                this.ctx.lineTo(p.x, p.y + p.length * 2); // Plus long (était x1)
                 this.ctx.stroke();
                 
                 p.y += p.speed;
@@ -500,10 +500,10 @@ class Game {
                 }
             });
         } else if (code >= 71 && code <= 75) { // Neige
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
             this.particles.forEach(p => {
                 this.ctx.beginPath();
-                this.ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                this.ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); // Plus gros (était 2)
                 this.ctx.fill();
                 
                 p.y += p.speed * 0.3;
